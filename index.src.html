@@ -1320,10 +1320,10 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
           "`Does Not Match`" given |A|'s  <a grammar>`host-part`</a> and |B|'s
           <a grammar>`host-part`</a>, return "`Does Not Subsume`".
 
-      4.  If |A| has a `wildcard port` but |B| doesn't have a `wildcard port`,
+      4.  If |B| has a `wildcard port` but |A| doesn't have a `wildcard port`,
           return "`Does Not Subsume`".
 
-      5.  If |A| doesn't have a `wildcard port` and [[csp3#match-ports]] returns
+      5.  If |B| doesn't have a `wildcard port` and [[csp3#match-ports]] returns
           "`Does Not Match`" given |A|'s <a grammar>`port-part`</a>
           (or `null` if |A| does not contain a <a grammar>`port-part`</a>)
           and |B|'s <a grammar>`port-part`</a> (or `null` if |B| does not
