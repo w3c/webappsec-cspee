@@ -657,9 +657,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
             and |schemes| <a for="list">contains</a> |expression A|,
             <a for="iteration">continue</a>.
 
-        2.  Let |match| be `null`.
-
-        3.  For each |expression B| in |effective B|:
+        2.  For each |expression B| in |effective B|:
 
             1.  If at least one of |expression A| and |expression B| does not
                 match <a grammar>`scheme-source`</a> or
@@ -681,27 +679,9 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
                 the elements in |schemes|, <a for="iteration">continue</a> to the
                 next |expression B|.
 
-            3.  If |expression A| matches <a grammar>`scheme-source`</a> grammar:
-
-                1.  If |expression B| matches <a grammar>`host-source`</a> grammar
-                    and the result of executing
-                    [[#intersection-source-expressions]] is not `null` given
-                    |expression A| and |expression B|, <a for="set">append</a> the
-                    result to |intersection|.
-
-                2.  <a for="iteration">Continue</a> to the next |expression B|.
-
-            4.  If the result of executing [[#subsume-source-list]] is
-                "`Subsumes`" given |expression B| and |expression A|,
-                <a for="set">append</a> |expression A| to |intersection|.
-                <a for="iteration">Continue</a> to the next |expression A|.
-
-            5.  If the result of executing [[#intersection-source-expressions]] is
-                not `null` given |expression A| and |expression B|, set |match| to
-                the result.
-
-        4.  If |match| is not `null`, <a for="set">append</a> |match| to
-            |intersection|.
+            3.  If the result of executing [[#intersection-source-expressions]] is
+                not `null` given |expression A| and |expression B|, <a for="set">append</a>
+                the result to |intersection|.
 
     11.  Return |intersection|.
   </ol>
