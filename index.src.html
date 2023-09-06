@@ -1095,17 +1095,11 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   1.  If |response|'s <a for="response">url</a>'s <a for="url">scheme</a> is
       a <a>local scheme</a>, return "`Allowed`".
 
-      Note: The embedder has direct access to same-origin responses, so if it
-      wishes to enforce a policy on that same-origin response, we simply do so.
-
-  2.  If |response|'s <a for="response">url</a>'s <a for="url">origin</a> is the
-      same as |request|'s <a for="request">origin</a>, return "`Allowed`".
-
-      Note: Likewise, <a>local scheme</a> responses already inherit their policy
+      Note: The <a>local scheme</a> responses already inherit their policy
       from the embedder, so we allow the embedder to tighten that policy via this
       embedding mechanism.
 
-  3.  If |response|'s <a for="response">header list</a> has a header named
+  2.  If |response|'s <a for="response">header list</a> has a header named
       <a http-header>`Allow-CSP-From`</a> (|header|):
 
       1.  If |header|'s value is "`*`", return "`Allowed`".
@@ -1114,7 +1108,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
           <a lt="ASCII serialization of an origin">serialized</a> and <a>UTF-8
           encoded</a> is |header|'s value, return "`Allowed`".
 
-  4.  Return "`Not Allowed`".
+  3.  Return "`Not Allowed`".
 
   <h4 id="intersection-source-expressions" algorithm>
     What is an intersection of two expressions matching
