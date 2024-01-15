@@ -220,11 +220,9 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   <a>element</a> (|element|)'s <{iframe/csp}> <a>content attribute</a> if all of the
   following statements are true:
 
-  1.  |value| is not the empty string.
+  1.  |value| matches the <a grammar>serialized-policy</a> ABNF grammar defined in [[!CSP]].
 
-  2.  |value| matches the <a grammar>serialized-policy</a> ABNF grammar defined in [[!CSP]].
-
-  3.  One of the following statements is true:
+  2.  One of the following statements is true:
 
       1.  |element|'s [=node document=]'s [=Document/browsing context=]'s
           [=browsing context/required CSP=] is `null`.
@@ -233,7 +231,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
           [=policy/subsumed by=] |element|'s [=node document=]'s [=Document/browsing context=]'s
           [=browsing context/required CSP=].
 
-  4.  The result of [=parse a serialized csp as disposition|parsing=] |value| as "`enforce`" has a
+  3.  The result of [=parse a serialized csp as disposition|parsing=] |value| as "`enforce`" has a
       [=policy/directive set=] that does not [=list/contain=] any of the following directives:
 
       *   [=report-uri=]
@@ -342,6 +340,9 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
       11. <a lt="set the required CSP" abstract-op>Set</a> `browsingContext`'s
           <a for="browsing context">required CSP</a>.
 
+      12. If `browsingContext`'s <a for="browsing context">required CSP</a> is `invalid`, cancel the
+          navigation.
+
       ISSUE: Upstream this to WHATWG's HTML.
 
       ISSUE(w3c/html#584): W3C's HTML's navigation algorithm is wildly divergent from WHATWG's at
@@ -383,14 +384,17 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
     1.  If |context| is a <a>nested browsing context</a>:
 
-        1.  If |context|'s <a>browsing context container</a> has an <{iframe/csp}> <a>content
+        1.  If |context|'s <a>browsing context container</a> has no <{iframe/csp}> <a>content
+            attribute</a>, or if it has an <{iframe/csp}> <a>content attribute</a> with an emtpy
+            value, set |context|'s <a for="browsing context">required CSP</a> to the value of
+            |context|'s
+            <a>parent browsing context</a>'s <a for="browsing context">required CSP</a> and return.
+
+        2.  If |context|'s <a>browsing context container</a> has an <{iframe/csp}> <a>content
             attribute</a> with a <a for="iframe/csp">valid attribute value</a> (|value|), set
             |context|'s <a for="browsing context">required CSP</a> to |value| and return.
 
-        2.  Set |context|'s <a for="browsing context">required CSP</a> to the value of |context|'s
-            <a>parent browsing context</a>'s <a for="browsing context">required CSP</a>.
-
-        3.  Return.
+        3.  Set |context|'s <a for="browsing context">required CSP</a> to `invalid` and return.
 
     2.  Set |context|'s <a for="browsing context">required CSP</a> to `null`.
   </div>
