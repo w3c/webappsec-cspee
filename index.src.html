@@ -36,6 +36,7 @@ spec:fetch
 spec:infra
   type:dfn
     text:string; for: /
+    text:length; for: string
     text:list; for: /
     text:set; for: /
     text:append; for: set
@@ -222,9 +223,14 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   1.  |value| is not the empty string.
 
-  2.  |value| matches the <a grammar>serialized-policy</a> ABNF grammar defined in [[!CSP]].
+  2.  |value|'s <a for=string>length</a> is less or equal to 4096.
 
-  3.  One of the following statements is true:
+  Note: We enforce a maximum length for the csp attribute because some
+  servers impose a limit on the length of request headers, see [[#header-length]]. 
+
+  3.  |value| matches the <a grammar>serialized-policy</a> ABNF grammar defined in [[!CSP]].
+
+  4.  One of the following statements is true:
 
       1.  |element|'s [=node document=]'s [=Document/browsing context=]'s
           [=browsing context/required CSP=] is `null`.
@@ -233,7 +239,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
           [=policy/subsumed by=] |element|'s [=node document=]'s [=Document/browsing context=]'s
           [=browsing context/required CSP=].
 
-  4.  The result of [=parse a serialized csp as disposition|parsing=] |value| as "`enforce`" has a
+  5.  The result of [=parse a serialized csp as disposition|parsing=] |value| as "`enforce`" has a
       [=policy/directive set=] that does not [=list/contain=] any of the following directives:
 
       *   [=report-uri=]
@@ -1612,6 +1618,16 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   ISSUE: Spell out the concerns Mario raised in the thread around
   <a href="https://twitter.com/0x6D6172696F/status/810066803653308416">https://twitter.com/0x6D6172696F/status/810066803653308416</a>.
+
+  Maximum Header Length {#header-length}
+  ---------------------
+
+  This feature allows an embedder to control the <a http-header>`Sec-Required-CSP`</a>
+  HTTP header for cross-origin embedded document requests. If the server enforces a limit
+  on the length of HTTP headers, this can cause a network error. This can be abused by
+  an attacker to force a cache invalidation, see
+  <a href="https://xsleaks.dev/docs/attacks/cache-probing/#cache-probing-with-error-events">https://xsleaks.dev/docs/attacks/cache-probing/#cache-probing-with-error-events</a>.
+  Because of this, we limit the maximum length of valid csp attributes to 4 KB.
 </section>
 
 <!-- Big text: Authoring -->
