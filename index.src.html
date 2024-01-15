@@ -705,13 +705,13 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
     <pre>
       A = http://*.a.com http://*.b.com
-      B = https://a.com:* http://*.c.com
-      intersection = https://a.com
+      B = https://sub.a.com:* http://*.c.com
+      intersection = https://sub.a.com
     </pre>
 
     Only two sources are similar: "http://*.a.com" in |A| is similar to
-    "https://a.com:*" in |B| so the intersection of the two source lists is
-    "https://a.com".
+    "https://sub.a.com:*" in |B| so the intersection of the two source lists is
+    "https://sub.a.com".
 
     <pre>
       A = 'unsafe-inline' http://example.com:443/page1/html 'nonce-abc'
@@ -995,7 +995,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
     <pre>
       A = http://*.example.com
-      B = https://example.com:*
+      B = https://inner.example.com:*
     </pre>
 
     Even though |A| and |B|'s ports are different, |A| and |B| are similar
