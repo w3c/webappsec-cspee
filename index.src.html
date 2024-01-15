@@ -1006,8 +1006,8 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
       B = https://example.com:443/
     </pre>
 
-    In both sources specified ports are defalt ports for the respective schemes
-    and |B|'s path would match any path, |A| is similar to |B|.
+    Since |A| and |B| explicitly specify different ports, |A| is not
+    similar to |B|.
 
     <pre>
       A = 'sha256-abc123'
@@ -1142,7 +1142,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     <pre>
       A = http://example.com:80/page1/html
       B = https://example.com:443/
-      Intersect = https://example.com:443/page1/html
+      Intersect = `null`
     </pre>
 
     <pre>
