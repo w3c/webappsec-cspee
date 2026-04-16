@@ -27,19 +27,10 @@ spec: html
     text: case-sensitive
     text: content attribute
     text: navigate
-spec:dom; type:interface; text:Document
-spec:dom; type:dfn; for:/; text:element
 spec:fetch
   type: dfn
     text:request; for: /
     text: response; for: /
-spec:infra
-  type:dfn
-    text:string; for: /
-    text:list; for: /
-    text:set; for: /
-    text:append; for: set
-    text:empty; for: set
 spec: csp
   type: dfn
     text: report-to
@@ -68,6 +59,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
  ██  ██   ███    ██    ██    ██  ██     ██
 ████ ██    ██    ██    ██     ██  ███████
 -->
+<section>
   Introduction {#intro}
   ============
 
@@ -217,7 +209,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   </div>
 
   A <a>string</a> (|value|) is a <dfn for="iframe/csp">valid attribute value</dfn> for a given
-  <a>element</a> (|element|)'s <{iframe/csp}> <a>content attribute</a> if all of the
+  [=/element=] (|element|)'s <{iframe/csp}> <a>content attribute</a> if all of the
   following statements are true:
 
   1.  |value| is not the empty string.
@@ -511,7 +503,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
         <a for="policy">directive set</a>, and a <a for="policy">disposition</a>
         "`enforce`".
 
-    5.  Let |directive names| be an empty <a>set</a>.
+    5.  Let |directive names| be an empty [=/set=].
 
     6.  For each |directive| in |A|:
 
@@ -629,7 +621,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
     5.  If |effective B| is empty, return |effective A|.
 
-    6   Let |schemes| be an empty <a>set</a>.
+    6   Let |schemes| be an empty [=/set=].
 
     7.  Let |intersection| be an empty <a>source list</a>.
 
@@ -1538,7 +1530,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   </h3>
 
   Given a <a>policy</a> |subsuming policy| with an <a for="/">origin</a>
-  (|subsuming origin|) and a <a>list</a> of <a>policy</a> objects |policy list|
+  (|subsuming origin|) and a [=/list=] of <a>policy</a> objects |policy list|
   with an <a for="/">origin</a>  (|origin|), this algorithm returns "`Subsumes`"
   if |subsuming policy| <a for="policy">subsumes</a> |policy list|, and returns
   "`Does Not Subsume`" otherwise.
@@ -1650,6 +1642,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     </pre>
 
     Then this <{iframe}> element will not be loaded.
+  </div>
 </section>
 
 <section>
