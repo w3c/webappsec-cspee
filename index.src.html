@@ -24,7 +24,6 @@ Markup Shorthands: css off, markdown on
 spec: html
   type: dfn; for: /
     text: browsing context
-    text: case-sensitive
     text: content attribute
     text: navigate
 spec:fetch
@@ -662,9 +661,9 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
                     |intersection|.
 
                 2.  If |expression A| matches <a grammar>`nonce-source`</a> or
-                    <a grammar>`hash-source`</a> grammar and is a
-                    <a>case-sensitive</a> match for |expression B|,
-                    <a for="set">append</a> |expression A| to |intersection|.
+                    <a grammar>`hash-source`</a> grammar and [=string/is=]
+                    |expression B|, <a for="set">append</a> |expression A| to
+                    |intersection|.
 
                 3.  <a for="iteration">Continue</a> to the next |expression B|.
 
@@ -898,10 +897,10 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   #### Source Expression Similarity #### {#similarity-source-expressions}
 
   A [=source expression=] (|A|) is said to be <dfn export>source-expression similar</dfn> to
-  another [=source expression=] (|B|) if the two expressions are <a>case-sensitive</a>
-  matches, or if the relevant parts of their grammar match (for example, in the case of
-  <a grammar>`scheme-source`</a> expressions, the respective <a grammar>`scheme-part`</a>s
-  must <a>`scheme-part` match</a> in one direction or the other.
+  another [=source expression=] (|B|) if the |A| [=string/is=] |B|, or if the relevant parts
+  of their grammar match (for example, in the case of <a grammar>`scheme-source`</a>
+  expressions, the respective <a grammar>`scheme-part`</a>s must <a>`scheme-part` match</a>
+  in one direction or the other.
 
   Note: This property is symmetric. That is if |A| is <a>source-expression similar</a> to |B|,
   then |B| will be <a>source-expression similar</a> to |A|.
@@ -922,7 +921,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     2.  If |A| matches the <a grammar>`keyword-source`</a>, <a grammar>`nonce-source`</a>,
         or <a grammar>`hash-source`</a> grammar:
 
-        1.  If |A| is a <a>case-sensitive</a> match to |B|, return "`Similar`".
+        1.  If |A| [=string/is=] |B|, return "`Similar`".
 
         2.  Return "`Not Similar`".
 
@@ -975,7 +974,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     </pre>
 
     Since both |A| and |B| match the <a grammar>`nonce-source`</a> grammar and |A|
-    is a <a>case-sensitive</a> match for |B|, |A| is similar to |B|.
+    [=string/is=] |B|, |A| is similar to |B|.
 
     <pre>
       A = https://inner.example.com/foo/
@@ -1007,7 +1006,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     </pre>
 
     Even though both |A| and |B| match the <a grammar>`hash-source`</a> grammar, |A|
-    is not a <a>case-sensitive</a> match for |B| because the hashes don't match.
+    is not a match for |B| because the hashes don't match.
 
     <pre>
       A = http://example.com:80
@@ -1306,8 +1305,8 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   3.  If both |A| and |B| match the <a grammar>`hash-source`</a> grammar:
 
-      1.  If |A| is a <a>case-sensitive</a> match to |B|, return "`Subsumes`".
-          Otherwise, return "`Does Not Subsume`".
+      1.  If |A| [=string/is=] |B|, return "`Subsumes`". Otherwise, return
+          "`Does Not Subsume`".
 
   4.  If both |A| and |B| match the <a grammar>`nonce-source`</a> grammar:
 
