@@ -22,13 +22,21 @@ Markup Shorthands: css off, markdown on
 </pre>
 <pre class="link-defaults">
 spec:dom; type:dfn; text:attribute
-spec: html
+spec:html
+  type: dfn
+    text: target snapshot params
+    text: snapshotting target snapshot params
+    text: navigation params
+    text: create navigation params from a srcdoc resource
+    text: finalize a cross-document navigation
+    for: /; text: policy container
   type: dfn; for: /
     text: create navigation params by fetching
   type: dfn; for: navigation params
     text: response
     text: request
 spec:fetch
+  type: dfn; text: policy container
   type: dfn
     text:request; for: /
     text: response; for: /
@@ -45,6 +53,10 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     for: content security policy object
       text: directive set; url: content-security-policy-object-directive-set
       text: disposition; url: content-security-policy-object-disposition
+spec: HTML; urlPrefix: https://html.spec.whatwg.org/
+  type: dfn
+    for: session history entry
+      text: document; url: she-document
 </pre>
 <!--
 ████ ██    ██ ████████ ████████   ███████
@@ -221,11 +233,11 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   4.  One of the following statements is true:
 
-      1.  |element|'s [=node document=]'s [=node navigable=]'s [=navigable/required CSP=] is `null`.
+      1.  |element|'s [=node document=]'s [=policy container=]'s [=policy container/required CSP=] is `null`.
 
       2.  The result of [$parse a serialized CSP|parsing$] |value| as "`enforce`" is
-          [=policy/subsumed by=] |element|'s [=node document=]'s [=node navigable=]'s
-          [=navigable/required CSP=].
+          [=policy/subsumed by=] |element|'s [=node document=]'s [=policy container=]'s
+          [=policy container/required CSP=].
 
   5.  The result of [$parse a serialized CSP|parsing$] |value| as "`enforce`" has a
       [=content security policy object/directive set=] that does not [=list/contain=] any of the
@@ -296,18 +308,17 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   <div algorithm="set a request's required-csp header">
     To <dfn abstract-op local-lt="set-required-csp">set the `Sec-Required-CSP` header</dfn> for a
-    given [=request=] (|request|) and [=/navigable=] (|navigable|), run the following steps:
+    given [=request=] (|request|) and [=serialized CSP=]-or-null (|requirement|), run the following
+    steps:
 
     1.  If |request| is not a [=navigation request=], return.
 
-    2.  Let |requirement| be |navigable|'s [=navigable/required CSP=].
+    2.  If |requirement| is `null`, return.
 
-    3.  If |requirement| is `null`, return.
-
-    4.  Assert: |requirement| is a [=serialized CSP=], matching the <a grammar>serialized-policy</a>
+    3.  Assert: |requirement| is a [=serialized CSP=], matching the <a grammar>serialized-policy</a>
         grammar defined in [[!CSP]].
 
-    5.  [=header list/Append=] a header named "[:Sec-Required-CSP:]" with a value of |requirement|
+    4.  [=header list/Append=] a header named "[:Sec-Required-CSP:]" with a value of |requirement|
         to |request|'s [=request/header list=].
   </div>
 
@@ -328,70 +339,77 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   1.  <{iframe}> elements have a <{iframe/csp}> attribute, defined in [[#csp-attribute]].
 
-  2.  Each [=/navigable=] has a [=navigable/required CSP=], defined in [[#required-csp]].
+  2.  Add a <dfn for="policy container" export>required CSP</dfn> item to the [=policy container=]
+      [=struct=], which is a [=serialized CSP=] or null, and is initially null.
 
-  3.  Add the following step early in HTML's [=navigate=] algorithm (e.g. after the step that
-      snapshots source snapshot params):
+  3.  Add a <dfn for="target snapshot params" export>required CSP</dfn> item to the [=target snapshot
+      params=] [=struct=], which is a [=serialized CSP=] or null.
 
-      1. <a lt="set the required CSP" abstract-op>Set the required CSP</a> for
-         <var ignore>navigable</var> given <var ignore>sourceDocument</var>.
+  4.  Update HTML's [=snapshotting target snapshot params=] algorithm to set the new
+      [=target snapshot params/required CSP=] item to the result of
+      [$determine the required CSP$] given <var ignore>targetNavigable</var>.
 
-  4.  Add the following step to HTML's [=create navigation params by fetching=] algorithm, after
-      `request` is created:
+  5.  Add a <dfn for="navigation params" export>required CSP</dfn> item to the [=navigation params=]
+      [=struct=], which is a [=serialized CSP=] or null.
 
-      1. <a lt="set-required-csp" abstract-op>Set the `Sec-Required-CSP` header</a> for
-         <var ignore>request</var> and <var ignore>navigable</var>.
+  6.  Update the [=navigate=] algorithm to set the [=navigation params/required CSP=] of the
+      [=navigation params=] [=struct=] created in step 18.7.7 to
+      <var ignore>targetSnapshotParams</var>'s [=target snapshot params/required CSP=].
 
-  5.  Add the following to the list of conditions in HTML's [=navigate=] algorithm that cause the
-      navigation to be blocked (e.g. after the `X-Frame-Options` check):
+  7.  Add the following step to HTML's [=create navigation params by fetching=] algorithm, after
+      <var ignore>request</var> is created:
 
-      *   The [[#process-response]] algorithm returns "`Blocked`" when executed upon
-          `navigationParams`'s [=navigation params/response=], `navigationParams`'s
-          [=navigation params/request=], and `navigable`.
+      1. [$set the Sec-Required-CSP header$] for <var ignore>request</var> and
+         <var ignore>targetSnapshotParams</var>'s [=target snapshot params/required CSP=].
 
-  6.  Add the following step to HTML's [=creating a policy container from a fetch response=]
-      algorithm:
+  8.  Update [=create navigation params by fetching=] to set the [=navigation params/required CSP=]
+      of the returned [=navigation params=] to <var ignore>targetSnapshotParams</var>'s
+      [=target snapshot params/required CSP=].
 
-      1.  If <var ignore>environment</var> is a <span>navigable</span>'s
-          [=navigable/active document=]'s <span>relevant settings object</span>, and that
-          <var ignore>navigable</var> has a [=navigable/required CSP=] which is not null:
+  9.  Update [=create navigation params from a srcdoc resource=] to set the
+      [=navigation params/required CSP=] of the returned [=navigation params=] to
+      <var ignore>targetSnapshotParams</var>'s [=target snapshot params/required CSP=].
+
+  10. Add an optional |requiredCSP| (a [=serialized CSP=] or null, defaulting to null) as an
+      argument to HTML's [=creating a policy container from a fetch response=] algorithm, and
+      add the following steps:
+
+      1.  If |requiredCSP| is not null:
 
           1.  Let |required policy| be the result of [=parse a serialized CSP|parsing=]
-              <var ignore>navigable</var>'s [=navigable/required CSP=] as "`enforce`".
+              |requiredCSP| as "`enforce`".
 
           2.  [=list/Append=] |required policy| to <var ignore>result</var>'s
               [=policy container/CSP list=].
 
-  ISSUE: Upstream these monkey-patches.
+          3.  Set <var ignore>result</var>'s [=policy container/required CSP=] to |requiredCSP|.
+
+  11. Update [=create navigation params by fetching=] to pass
+      <var ignore>targetSnapshotParams</var>'s [=target snapshot params/required CSP=] to
+      [=creating a policy container from a fetch response=].
+
+  12. Add the following to the list of conditions in HTML's [=navigate=] algorithm that cause the
+      navigation to be blocked (e.g. after the `X-Frame-Options` check):
+
+      *   The [[#process-response]] algorithm returns "`Blocked`" when executed upon
+          `navigationParams`'s [=navigation params/response=], `navigationParams`'s
+          [=navigation params/request=], and `navigationParams`'s
+          [=navigation params/required CSP=].
 
 
-  ### Navigable's Required CSP ### {#required-csp}
+  ### Required CSP ### {#required-csp}
 
-  Each [=/navigable=] has a <dfn for="navigable">required CSP</dfn>, which is either `null` or a
-  [=serialized CSP=]. The value is set during the [=navigate=] algorithm, and will not change until
-  the [=/navigable=]'s [=active document=] changes.
+  <div algorithm="determining the required CSP">
+    To <dfn abstract-op export>determine the required CSP</dfn> for a given [=/navigable=] (|navigable|),
+    run the following steps:
 
-  The following algorithm will execute at around step 10 of the current [=navigate=] algorithm:
+    1.  If |navigable| is not a [=child navigable=], return `null`.
 
-  ISSUE: This isn't right. We should probably capture the required CSP as part of the
-  "snapshotting-target-snapshot-params" algorithm that also grabs sandboxing flags and the referrer
-  policy, storing the new value as part of the "target snapshot params" struct. We'd then use that
-  value as part of the "navigation params" struct.
+    2.  If |navigable|'s [=navigable/container=] has an <{iframe/csp}> [=attribute=] with a
+        <a for="iframe/csp">valid attribute value</a> (|value|), return |value|.
 
-  <div algorithm="navigable's required CSP">
-    To <dfn abstract-op>set the required CSP</dfn> for a given [=/navigable=] (|navigable|) and
-    <code>Document</code>-or-null (|sourceDocument|), run the following steps:
-
-    1.  If |navigable| is a [=child navigable=]:
-
-        1.  If |navigable|'s [=navigable/container=] has an <{iframe/csp}> [=attribute=] with a
-            <a for="iframe/csp">valid attribute value</a> (|value|), set |navigable|'s
-            [=navigable/required CSP=] to |value| and return.
-
-        2.  If |sourceDocument| is not null, set |navigable|'s [=navigable/required CSP=] to the
-            value of |sourceDocument|'s [=node navigable=]'s [=navigable/required CSP=] and return.
-
-    2.  Set |navigable|'s [=navigable/required CSP=] to `null`.
+    3.  Return |navigable|'s [=navigable/container document=]'s [=policy container=]'s
+        [=policy container/required CSP=].
   </div>
 
   ISSUE: Upstream this.
@@ -1070,33 +1088,27 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
   <h2 id="algorithms">Algorithms</h2>
 
   <h3 id="process-response" algorithm>
-    Is |response| to |request| blocked by |navigable|'s required CSP?
+    Is |response| to |request| blocked by |requiredCSP|?
   </h3>
 
-  Given a [=response=] (|response|), a [=request=] (|request|), and a [=/navigable=] (|navigable|),
-  this algorithm returns "`Allowed`" or "`Blocked`" as appropriate:
+  Given a [=response=] (|response|), a [=request=] (|request|), and a [=serialized CSP=]-or-null
+  (|requiredCSP|), this algorithm returns "`Allowed`" or "`Blocked`" as appropriate:
 
   <ol class="algorithm">
-    1.  Return "`Allowed`" if either of the following is true:
+    1.  Return "`Allowed`" if |requiredCSP| is `null`.
 
-        1.  |navigable| is not a [=child navigable=].
-
-        2.  |navigable|'s [=navigable/required CSP=] is `null`.
-
-    2.  Let |required policy| be the result of [=parse a serialized CSP|parsing=] |navigable|'s
-        [=navigable/required CSP=] as "`enforce`".
+    2.  Let |required policy| be the result of [=parse a serialized CSP|parsing=] |requiredCSP|
+        as "`enforce`".
 
     3.  If the [[#origin-allowed]] algorithm returns "`Allowed`" when executed upon |response| and
         |request|, return "`Allowed`".
 
-    4.  Assert: |navigable| is a [=child navigable=].
-
-    5.  If the [[#subsume-policy-list]] algorithm returns "`Subsumes`" when executed upon
+    4.  If the [[#subsume-policy-list]] algorithm returns "`Subsumes`" when executed upon
         |required policy|, |request|'s [=request/origin=], the result of
         [$parse a response’s Content Security Policies|parsing$] |response|'s Content Security
         Policies, and |response|'s [=response/url=]'s [=url/origin=], return "`Allowed`".
 
-    6.  Return "`Blocked`".
+    5.  Return "`Blocked`".
   </ol>
 
   <h3 id="origin-allowed" algorithm>
@@ -1663,9 +1675,9 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
     Requiring `'self'`
   </h3>
 
-  When processing a [=/navigable=]'s [=navigable/required CSP=], the keyword <a grammar>`'self'`</a>
+  When processing a [=policy container/required CSP=], the keyword <a grammar>`'self'`</a>
   refers to the <a for="/">origin</a> of the URL being loaded into the [=child navigable=], not to
-  the origin of the document in the [=source document=].
+  the origin of the document which required the policy.
 
   <div class="example">
     MegaCorp Inc. requires a policy containing <a grammar>`'self'`</a> on their page at
