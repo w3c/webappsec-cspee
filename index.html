@@ -5,9 +5,9 @@
   <title>Content Security Policy: Embedded Enforcement</title>
   <meta content="ED" name="w3c-status">
   <link href="https://www.w3.org/StyleSheets/TR/2021/W3C-ED" rel="stylesheet">
-  <meta content="Bikeshed version 1453201ca, updated Wed Nov 5 21:01:59 2025 +0000" name="generator">
+  <meta content="Bikeshed version 5d4d5b9a8, updated Fri Apr 17 13:49:40 2026 -0700" name="generator">
   <link href="https://www.w3.org/TR/csp-embedded-enforcement/" rel="canonical">
-  <meta content="f728f37098c80f8f375042045a2a1b9b98a1ccb4" name="revision">
+  <meta content="75a5aa7b39184880a92c4c2369a43f1624a7cb3a" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -303,7 +303,7 @@ pre .property::before, pre .property::after {
 </style>
 <style>/* Boilerplate: style-counters */
 body {
-    counter-reset: example figure issue;
+    counter-reset: example figure issue table;
 }
 .issue {
     counter-increment: issue;
@@ -328,6 +328,13 @@ figcaption {
 }
 figcaption:not(.no-marker)::before {
     content: "Figure " counter(figure) " ";
+}
+
+figure.table figcaption {
+    counter-increment: table;
+}
+figure.table figcaption:not(.no-marker)::before {
+    content: "Table " counter(table) " ";
 }
 </style>
 <style>/* Boilerplate: style-dfn-panel */
@@ -914,6 +921,30 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     c-[vm] { color: #cb4b16 } /* Name.Variable.Magic */
     c-[il] { color: #657b83 } /* Literal.Number.Integer.Long */
 }
+
+@media print {
+    /* Darken colors for print that would otherwise print too faintly */
+    c-[c]  { color: #555555 } /* Comment */
+    c-[d]  { color: #555555 } /* Comment.Multiline */
+    c-[cp] { color: #555555 } /* Comment.Preproc */
+    c-[c1] { color: #555555 } /* Comment.Single */
+    c-[cs] { color: #555555 } /* Comment.Special */
+    c-[o]  { color: #222222 } /* Operator */
+    c-[p]  { color: #222222 } /* Punctuation */
+    c-[ow] { color: #222222 } /* Operator.Word */
+    c-[s]  { color: #664400 } /* Literal.String */
+    c-[t]  { color: #664400 } /* Literal.String.Single */
+    c-[u]  { color: #664400 } /* Literal.String.Double */
+    c-[sb] { color: #664400 } /* Literal.String.Backtick */
+    c-[sc] { color: #664400 } /* Literal.String.Char */
+    c-[sd] { color: #664400 } /* Literal.String.Doc */
+    c-[se] { color: #664400 } /* Literal.String.Escape */
+    c-[sh] { color: #664400 } /* Literal.String.Heredoc */
+    c-[si] { color: #664400 } /* Literal.String.Interpol */
+    c-[sx] { color: #664400 } /* Literal.String.Other */
+    c-[sr] { color: #664400 } /* Literal.String.Regex */
+    c-[ss] { color: #664400 } /* Literal.String.Symbol */
+}
 </style>
 <style>/* Boilerplate: style-var-click-highlighting */
 /*
@@ -1051,7 +1082,7 @@ set of restrictions upon itself.</p>
   <div data-fill-with="at-risk"></div>
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-ref no-toc" id="contents">Table of Contents</h2>
-   <ol class="toc" role="directory">
+   <ol class="toc">
     <li>
      <a href="#intro"><span class="secno">1</span> <span class="content">Introduction</span></a>
      <ol class="toc">
@@ -1694,81 +1725,78 @@ and
   <code>https://example.com/</code> in <var>A</var> and <code>https://not-example.com</code> in <var>B</var>), then the intersection will be
   the list « <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-none" id="ref-for-grammardef-none">'none'</a> ».</p>
     <ol class="algorithm">
-     <ol>
-      <li data-md>
-       <p>Let <var>effective A</var> be the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list">effective source list</a> for <var>A</var>, <var>name</var>, and <var>origin</var>.</p>
-      <li data-md>
-       <p>Let <var>effective B</var> be the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list①">effective source list</a> for <var>B</var>, <var>name</var>, and <var>origin</var>.</p>
-      <li data-md>
-       <p>If either <var>effective A</var> or <var>effective B</var> is « <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-none" id="ref-for-grammardef-none①"><code>'none'</code></a> », return «
+     <li data-md>
+      <p>Let <var>effective A</var> be the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list">effective source list</a> for <var>A</var>, <var>name</var>, and <var>origin</var>.</p>
+     <li data-md>
+      <p>Let <var>effective B</var> be the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list①">effective source list</a> for <var>B</var>, <var>name</var>, and <var>origin</var>.</p>
+     <li data-md>
+      <p>If either <var>effective A</var> or <var>effective B</var> is « <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-none" id="ref-for-grammardef-none①"><code>'none'</code></a> », return «
   <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-none" id="ref-for-grammardef-none②"><code>'none'</code></a> ».</p>
-      <li data-md>
-       <p>If <var>effective A</var> is empty, return <var>effective B</var>.</p>
-      <li data-md>
-       <p>If <var>effective B</var> is empty, return <var>effective A</var>.</p>
-     </ol>
-     <p>6 Let <var>schemes</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#ordered-set" id="ref-for-ordered-set①">set</a>.</p>
-     <ol start="7">
-      <li data-md>
-       <p>Let <var>intersection</var> be an empty <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#source-lists" id="ref-for-source-lists⑥">source list</a>.</p>
-      <li data-md>
-       <p>For each <var>expression B</var> in <var>effective B</var>:</p>
-       <ol>
-        <li data-md>
-         <p>If <var>expression B</var> matches the <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source"><code>scheme-source</code></a> grammar and <var>expression B</var>
+     <li data-md>
+      <p>If <var>effective A</var> is empty, return <var>effective B</var>.</p>
+     <li data-md>
+      <p>If <var>effective B</var> is empty, return <var>effective A</var>.</p>
+     <li data-md>
+      <p>Let <var>schemes</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#ordered-set" id="ref-for-ordered-set①">set</a>.</p>
+     <li data-md>
+      <p>Let <var>intersection</var> be an empty <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#source-lists" id="ref-for-source-lists⑥">source list</a>.</p>
+     <li data-md>
+      <p>For each <var>expression B</var> in <var>effective B</var>:</p>
+      <ol>
+       <li data-md>
+        <p>If <var>expression B</var> matches the <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source"><code>scheme-source</code></a> grammar and <var>expression B</var>
   is <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain①">contained</a> in <var>effective A</var>, then <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#set-append" id="ref-for-set-append⑤">append</a> <var>expression B</var> to <var>schemes</var>.</p>
-         <p class="note" role="note"><span class="marker">Note:</span> Getting the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list②">effective source list</a> above means that tokens matching the
+        <p class="note" role="note"><span class="marker">Note:</span> Getting the <a data-link-type="dfn" href="#effective-source-list" id="ref-for-effective-source-list②">effective source list</a> above means that tokens matching the
   <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source①"><code>scheme-source</code></a> grammar have already been normalized such that
   "<code>http:</code>"/"<code>ws:</code>" never appears without "<code>https:</code>"/"<code>ws:</code>" also appearing.</p>
-       </ol>
-      <li data-md>
-       <p>For each <var>expression</var> in <var>schemes</var>:</p>
-       <ol>
-        <li data-md>
-         <p>If <var>expression</var> does not match "<code>https:</code>" or <var>schemes</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain②">contain</a>
+      </ol>
+     <li data-md>
+      <p>For each <var>expression</var> in <var>schemes</var>:</p>
+      <ol>
+       <li data-md>
+        <p>If <var>expression</var> does not match "<code>https:</code>" or <var>schemes</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain②">contain</a>
    "<code>http:</code>":</p>
-         <ol>
-          <li data-md>
-           <p>If <var>expression</var> does not match "<code>wss:</code>" or <var>schemes</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain③">contain</a>
+        <ol>
+         <li data-md>
+          <p>If <var>expression</var> does not match "<code>wss:</code>" or <var>schemes</var> does not <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain③">contain</a>
    "<code>ws:</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#set-append" id="ref-for-set-append⑥">append</a> <var>expression</var> to <var>intersection</var>.</p>
-         </ol>
-       </ol>
-      <li data-md>
-       <p>For each <var>expression A</var> in <var>effective A</var>:</p>
-       <ol>
-        <li data-md>
-         <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source②"><code>scheme-source</code></a> grammar and <var>schemes</var>
+        </ol>
+      </ol>
+     <li data-md>
+      <p>For each <var>expression A</var> in <var>effective A</var>:</p>
+      <ol>
+       <li data-md>
+        <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source②"><code>scheme-source</code></a> grammar and <var>schemes</var>
   <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-contain" id="ref-for-list-contain④">contains</a> <var>expression A</var>, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue⑤">continue</a>.</p>
-        <li data-md>
-         <p>For each <var>expression B</var> in <var>effective B</var>:</p>
-         <ol>
-          <li data-md>
-           <p>If at least one of <var>expression A</var> and <var>expression B</var> does not match
+       <li data-md>
+        <p>For each <var>expression B</var> in <var>effective B</var>:</p>
+        <ol>
+         <li data-md>
+          <p>If at least one of <var>expression A</var> and <var>expression B</var> does not match
   <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-source" id="ref-for-grammardef-scheme-source③"><code>scheme-source</code></a> or <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-host-source" id="ref-for-grammardef-host-source"><code>host-source</code></a> grammar:</p>
-           <ol>
-            <li data-md>
-             <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-keyword-source" id="ref-for-grammardef-keyword-source"><code>keyword-source</code></a> grammar and is an
+          <ol>
+           <li data-md>
+            <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-keyword-source" id="ref-for-grammardef-keyword-source"><code>keyword-source</code></a> grammar and is an
   <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#ascii-case-insensitive" id="ref-for-ascii-case-insensitive">ASCII case-insensitive</a> match for <var>expression B</var>, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#set-append" id="ref-for-set-append⑦">append</a>
   <var>expression A</var> to <var>intersection</var>.</p>
-            <li data-md>
-             <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-nonce-source" id="ref-for-grammardef-nonce-source"><code>nonce-source</code></a> or
+           <li data-md>
+            <p>If <var>expression A</var> matches <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-nonce-source" id="ref-for-grammardef-nonce-source"><code>nonce-source</code></a> or
   <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-hash-source" id="ref-for-grammardef-hash-source①"><code>hash-source</code></a> grammar and <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string-is" id="ref-for-string-is">is</a> <var>expression B</var>,
   <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#set-append" id="ref-for-set-append⑧">append</a> <var>expression A</var> to <var>intersection</var>.</p>
-            <li data-md>
-             <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue⑥">Continue</a> to the next <var>expression B</var>.</p>
-           </ol>
-          <li data-md>
-           <p>If <var>expression B</var>’s <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-part" id="ref-for-grammardef-scheme-part"><code>scheme-part</code></a> matches one of the elements in
+           <li data-md>
+            <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue⑥">Continue</a> to the next <var>expression B</var>.</p>
+          </ol>
+         <li data-md>
+          <p>If <var>expression B</var>’s <a data-link-type="grammar" href="https://w3c.github.io/webappsec-csp/#grammardef-scheme-part" id="ref-for-grammardef-scheme-part"><code>scheme-part</code></a> matches one of the elements in
   <var>schemes</var>, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue⑦">continue</a> to the next <var>expression B</var>.</p>
-          <li data-md>
-           <p>If the result of executing <a href="#intersection-source-expressions">§ 4.2.1 What is an intersection of two expressions matching scheme-source or
+         <li data-md>
+          <p>If the result of executing <a href="#intersection-source-expressions">§ 4.2.1 What is an intersection of two expressions matching scheme-source or
     host-source grammar A and B?</a> is not <code>null</code> given
   <var>expression A</var> and <var>expression B</var>, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#set-append" id="ref-for-set-append⑨">append</a> the result to <var>intersection</var>.</p>
-         </ol>
-       </ol>
-      <li data-md>
-       <p>Return <var>intersection</var>.</p>
-     </ol>
+        </ol>
+      </ol>
+     <li data-md>
+      <p>Return <var>intersection</var>.</p>
     </ol>
     <div class="example" id="example-419467ef">
      <a class="self-link" href="#example-419467ef"></a>
@@ -2045,18 +2073,26 @@ intersection = 'nonce-abc'
      <p>For any directive with origin <code>https://example.test/</code>:</p>
 <pre>https: wss: 'none' 'self'
 </pre>
-     <p>The effective source list is "http: wss: https://example.test/". Note that "'none'" is not part
-    of the effective source list because it has no effect when it is not the only source.</p>
+     
+    The effective source list is "http: wss: https://example.test/". Note that "'none'" is not part
+    of the effective source list because it has no effect when it is not the only source.
+
+
      <p>For "<code>style-src</code>":</p>
 <pre>http://example.com 'strict-dynamic' 'nonce-abc'
 </pre>
-     <p>The effective source list is "http://example.com 'nonce-abc'" since "'strict-dynamic'" is
-    ignored in non-"<code>script-src</code>" directives.</p>
+     
+    The effective source list is "http://example.com 'nonce-abc'" since "'strict-dynamic'" is
+    ignored in non-"<code>script-src</code>" directives.
+
+
      <p>For "<code>script-src</code>":</p>
 <pre>http://example.com 'strict-dynamic' 'nonce-abc'
 </pre>
-     <p>The effective source list is "'strict-dynamic' 'nonce-abc'" since "'strict-dynamic'" in
-    "<code>script-src</code>" case does not honor host and scheme source expressions.</p>
+     
+    The effective source list is "'strict-dynamic' 'nonce-abc'" since "'strict-dynamic'" in
+    "<code>script-src</code>" case does not honor host and scheme source expressions.
+  
     </div>
     <h5 class="heading settled" data-level="3.1.4.3" id="similarity-source-expressions"><span class="secno">3.1.4.3. </span><span class="content">Source Expression Similarity</span><a class="self-link" href="#similarity-source-expressions"></a></h5>
     <p>A <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#source-expression" id="ref-for-source-expression">source expression</a> (<var>A</var>) is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="source-expression-similar">source-expression similar</dfn> to another
@@ -3318,36 +3354,36 @@ let dfnPanelData = {
 "c80aa797": {"dfnID":"c80aa797","dfnText":"directives","external":true,"refSections":[{"refs":[{"id":"ref-for-directives"},{"id":"ref-for-directives\u2460"},{"id":"ref-for-directives\u2461"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-directives\u2462"},{"id":"ref-for-directives\u2463"},{"id":"ref-for-directives\u2464"},{"id":"ref-for-directives\u2465"},{"id":"ref-for-directives\u2466"},{"id":"ref-for-directives\u2467"},{"id":"ref-for-directives\u2468"},{"id":"ref-for-directives\u2460\u24ea"},{"id":"ref-for-directives\u2460\u2460"},{"id":"ref-for-directives\u2460\u2461"},{"id":"ref-for-directives\u2460\u2462"},{"id":"ref-for-directives\u2460\u2463"},{"id":"ref-for-directives\u2460\u2464"},{"id":"ref-for-directives\u2460\u2465"},{"id":"ref-for-directives\u2460\u2466"},{"id":"ref-for-directives\u2460\u2467"},{"id":"ref-for-directives\u2460\u2468"},{"id":"ref-for-directives\u2461\u24ea"},{"id":"ref-for-directives\u2461\u2460"},{"id":"ref-for-directives\u2461\u2461"},{"id":"ref-for-directives\u2461\u2462"},{"id":"ref-for-directives\u2461\u2463"},{"id":"ref-for-directives\u2461\u2464"},{"id":"ref-for-directives\u2461\u2465"},{"id":"ref-for-directives\u2461\u2466"},{"id":"ref-for-directives\u2461\u2467"},{"id":"ref-for-directives\u2461\u2468"},{"id":"ref-for-directives\u2462\u24ea"},{"id":"ref-for-directives\u2462\u2460"},{"id":"ref-for-directives\u2462\u2461"},{"id":"ref-for-directives\u2462\u2462"},{"id":"ref-for-directives\u2462\u2463"}],"title":"3.1.4.1. Effective Directive Value"},{"refs":[{"id":"ref-for-directives\u2462\u2464"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "}],"url":"https://w3c.github.io/webappsec-csp/#directives"},
 "cfb6031b": {"dfnID":"cfb6031b","dfnText":"creating a policy container from a fetch response","external":true,"refSections":[{"refs":[{"id":"ref-for-creating-a-policy-container-from-a-fetch-response"}],"title":"2.4. Integration with HTML"}],"url":"https://html.spec.whatwg.org/multipage/browsers.html#creating-a-policy-container-from-a-fetch-response"},
 "content-security-policy-object-intersection": {"dfnID":"content-security-policy-object-intersection","dfnText":"intersection","external":false,"refSections":[{"refs":[{"id":"ref-for-content-security-policy-object-intersection"}],"title":"3.1.1. CSP List intersection"}],"url":"#content-security-policy-object-intersection"},
-"content-security-policy-object-subsume": {"dfnID":"content-security-policy-object-subsume","dfnText":"subsume","external":false,"refSections":[{"refs":[{"id":"ref-for-content-security-policy-object-subsume"},{"id":"ref-for-content-security-policy-object-subsume\u2460"}],"title":"3. Implicit Policy Acceptance"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2461"}],"title":"3.1.1. CSP List intersection"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2462"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2463"}],"title":"4.2.3. \n    Does source expression A subsume source expression B?\n  "},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2464"},{"id":"ref-for-content-security-policy-object-subsume\u2465"},{"id":"ref-for-content-security-policy-object-subsume\u2466"},{"id":"ref-for-content-security-policy-object-subsume\u2467"},{"id":"ref-for-content-security-policy-object-subsume\u2468"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2460\u24ea"}],"title":"4.2.5. \n    Does content security policy object A subsume content security policy object B given\n    their respective origins?\n  "},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2460\u2460"}],"title":"4.3. \n    Does subsuming policy subsume policy list given their respective origins?\n  "}],"url":"#content-security-policy-object-subsume"},
+"content-security-policy-object-subsume": {"dfnID":"content-security-policy-object-subsume","dfnText":"subsume","external":false,"refSections":[{"refs":[{"id":"ref-for-content-security-policy-object-subsume"},{"id":"ref-for-content-security-policy-object-subsume\u2460"}],"title":"3. Implicit Policy Acceptance"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2461"}],"title":"3.1.1. CSP List intersection"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2462"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2463"}],"title":"4.2.3. Does source expression A subsume source expression B?"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2464"},{"id":"ref-for-content-security-policy-object-subsume\u2465"},{"id":"ref-for-content-security-policy-object-subsume\u2466"},{"id":"ref-for-content-security-policy-object-subsume\u2467"},{"id":"ref-for-content-security-policy-object-subsume\u2468"}],"title":"4.2.4. Does source list A subsume source listB given their respective origins and directive names?"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2460\u24ea"}],"title":"4.2.5. Does content security policy object A subsume content security policy object B given their respective origins?"},{"refs":[{"id":"ref-for-content-security-policy-object-subsume\u2460\u2460"}],"title":"4.3. Does subsuming policy subsume policy list given their respective origins?"}],"url":"#content-security-policy-object-subsume"},
 "content-security-policy-object-subsumed-by": {"dfnID":"content-security-policy-object-subsumed-by","dfnText":"subsumed by","external":false,"refSections":[{"refs":[{"id":"ref-for-content-security-policy-object-subsumed-by"}],"title":"3.1.2. Policy Intersection"}],"url":"#content-security-policy-object-subsumed-by"},
 "csp-list-intersection": {"dfnID":"csp-list-intersection","dfnText":"intersection","external":false,"refSections":[{"refs":[{"id":"ref-for-csp-list-intersection"},{"id":"ref-for-csp-list-intersection\u2460"}],"title":"3. Implicit Policy Acceptance"},{"refs":[{"id":"ref-for-csp-list-intersection\u2461"}],"title":"3.1.1. CSP List intersection"},{"refs":[{"id":"ref-for-csp-list-intersection\u2462"},{"id":"ref-for-csp-list-intersection\u2463"}],"title":"3.1.2. Policy Intersection"}],"url":"#csp-list-intersection"},
 "d00ecd59": {"dfnID":"d00ecd59","dfnText":"host-part match","external":true,"refSections":[{"refs":[{"id":"ref-for-host-part-match"},{"id":"ref-for-host-part-match\u2460"}],"title":"3.1.4.3. Source Expression Similarity"}],"url":"https://w3c.github.io/webappsec-csp/#host-part-match"},
 "d1092fae": {"dfnID":"d1092fae","dfnText":"parse a serialized CSP","external":true,"refSections":[{"refs":[{"id":"ref-for-abstract-opdef-parse-a-serialized-csp"},{"id":"ref-for-abstract-opdef-parse-a-serialized-csp\u2460"}],"title":"2.1. <iframe>\u2019s csp attribute"}],"url":"https://w3c.github.io/webappsec-csp/#abstract-opdef-parse-a-serialized-csp"},
 "d4ec2d19": {"dfnID":"d4ec2d19","dfnText":"scheme-source","external":true,"refSections":[{"refs":[{"id":"ref-for-grammardef-scheme-source"},{"id":"ref-for-grammardef-scheme-source\u2460"},{"id":"ref-for-grammardef-scheme-source\u2461"},{"id":"ref-for-grammardef-scheme-source\u2462"}],"title":"3.1.3. Source List Intersection"},{"refs":[{"id":"ref-for-grammardef-scheme-source\u2463"},{"id":"ref-for-grammardef-scheme-source\u2464"}],"title":"3.1.4.2. Effective Source List"},{"refs":[{"id":"ref-for-grammardef-scheme-source\u2465"},{"id":"ref-for-grammardef-scheme-source\u2466"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-grammardef-scheme-source\u2467"},{"id":"ref-for-grammardef-scheme-source\u2468"},{"id":"ref-for-grammardef-scheme-source\u2460\u24ea"},{"id":"ref-for-grammardef-scheme-source\u2460\u2460"},{"id":"ref-for-grammardef-scheme-source\u2460\u2461"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "},{"refs":[{"id":"ref-for-grammardef-scheme-source\u2460\u2462"},{"id":"ref-for-grammardef-scheme-source\u2460\u2463"},{"id":"ref-for-grammardef-scheme-source\u2460\u2464"}],"title":"4.2.3. \n    Does source expression A subsume source expression B?\n  "},{"refs":[{"id":"ref-for-grammardef-scheme-source\u2460\u2465"},{"id":"ref-for-grammardef-scheme-source\u2460\u2466"},{"id":"ref-for-grammardef-scheme-source\u2460\u2467"},{"id":"ref-for-grammardef-scheme-source\u2460\u2468"},{"id":"ref-for-grammardef-scheme-source\u2461\u24ea"},{"id":"ref-for-grammardef-scheme-source\u2461\u2460"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "}],"url":"https://w3c.github.io/webappsec-csp/#grammardef-scheme-source"},
 "db0a062f": {"dfnID":"db0a062f","dfnText":"attribute","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-attribute"},{"id":"ref-for-concept-attribute\u2460"},{"id":"ref-for-concept-attribute\u2461"}],"title":"2.1. <iframe>\u2019s csp attribute"},{"refs":[{"id":"ref-for-concept-attribute\u2462"}],"title":"2.4.1. Navigable\u2019s Required CSP"}],"url":"https://dom.spec.whatwg.org/#concept-attribute"},
-"directive-contains": {"dfnID":"directive-contains","dfnText":"contains","external":false,"refSections":[{"refs":[{"id":"ref-for-directive-contains"},{"id":"ref-for-directive-contains\u2460"},{"id":"ref-for-directive-contains\u2461"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "}],"url":"#directive-contains"},
+"directive-contains": {"dfnID":"directive-contains","dfnText":"contains","external":false,"refSections":[{"refs":[{"id":"ref-for-directive-contains"},{"id":"ref-for-directive-contains\u2460"},{"id":"ref-for-directive-contains\u2461"}],"title":"4.2.4. Does source list A subsume source listB given their respective origins and directive names?"}],"url":"#directive-contains"},
 "dom-htmliframeelement-csp": {"dfnID":"dom-htmliframeelement-csp","dfnText":"csp","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmliframeelement-csp"}],"title":"2.1. <iframe>\u2019s csp attribute"}],"url":"#dom-htmliframeelement-csp"},
 "e0a0630a": {"dfnID":"e0a0630a","dfnText":"origin-or-null","external":true,"refSections":[{"refs":[{"id":"ref-for-http-origin"}],"title":"2.3. The Allow-CSP-From HTTP Response Header"}],"url":"https://fetch.spec.whatwg.org/#http-origin"},
 "e0ed7f36": {"dfnID":"e0ed7f36","dfnText":"scheme-part match","external":true,"refSections":[{"refs":[{"id":"ref-for-scheme-part-match"},{"id":"ref-for-scheme-part-match\u2460"},{"id":"ref-for-scheme-part-match\u2461"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-scheme-part-match\u2462"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "}],"url":"https://w3c.github.io/webappsec-csp/#scheme-part-match"},
 "eca448c9": {"dfnID":"eca448c9","dfnText":"serialized CSP","external":true,"refSections":[{"refs":[{"id":"ref-for-serialized-csp"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-serialized-csp\u2460"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-serialized-csp\u2461"},{"id":"ref-for-serialized-csp\u2462"}],"title":"3.1.1. CSP List intersection"},{"refs":[{"id":"ref-for-serialized-csp\u2463"},{"id":"ref-for-serialized-csp\u2464"}],"title":"3.1.2. Policy Intersection"}],"url":"https://w3c.github.io/webappsec-csp/#serialized-csp"},
 "ee7bba09": {"dfnID":"ee7bba09","dfnText":"response","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-response"}],"title":"4.1. \n    Is response to request blocked by navigable\u2019s required CSP?\n  "},{"refs":[{"id":"ref-for-concept-response\u2460"}],"title":"4.2. \n    Does response allow blanket enforcement of policy from request?\n  "}],"url":"https://fetch.spec.whatwg.org/#concept-response"},
-"effective-directive-value": {"dfnID":"effective-directive-value","dfnText":"effective directive value for name and\n    policy","external":false,"refSections":[{"refs":[{"id":"ref-for-effective-directive-value"},{"id":"ref-for-effective-directive-value\u2460"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-effective-directive-value\u2461"},{"id":"ref-for-effective-directive-value\u2462"}],"title":"4.2.5. \n    Does content security policy object A subsume content security policy object B given\n    their respective origins?\n  "}],"url":"#effective-directive-value"},
+"effective-directive-value": {"dfnID":"effective-directive-value","dfnText":"effective directive value for name and\n    policy","external":false,"refSections":[{"refs":[{"id":"ref-for-effective-directive-value"},{"id":"ref-for-effective-directive-value\u2460"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-effective-directive-value\u2461"},{"id":"ref-for-effective-directive-value\u2462"}],"title":"4.2.5. Does content security policy object A subsume content security policy object B given their respective origins?"}],"url":"#effective-directive-value"},
 "effective-source-list": {"dfnID":"effective-source-list","dfnText":"effective source list for list, name, and\n    origin","external":false,"refSections":[{"refs":[{"id":"ref-for-effective-source-list"},{"id":"ref-for-effective-source-list\u2460"},{"id":"ref-for-effective-source-list\u2461"}],"title":"3.1.3. Source List Intersection"}],"url":"#effective-source-list"},
-"element-attrdef-iframe-csp": {"dfnID":"element-attrdef-iframe-csp","dfnText":"csp","external":false,"refSections":[{"refs":[{"id":"ref-for-element-attrdef-iframe-csp"},{"id":"ref-for-element-attrdef-iframe-csp\u2460"}],"title":"1.1. Examples"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2461"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2462"},{"id":"ref-for-element-attrdef-iframe-csp\u2463"},{"id":"ref-for-element-attrdef-iframe-csp\u2464"},{"id":"ref-for-element-attrdef-iframe-csp\u2465"},{"id":"ref-for-element-attrdef-iframe-csp\u2466"},{"id":"ref-for-element-attrdef-iframe-csp\u2467"},{"id":"ref-for-element-attrdef-iframe-csp\u2468"}],"title":"2.1. <iframe>\u2019s csp attribute"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u24ea"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2460"}],"title":"2.4. Integration with HTML"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2461"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2462"}],"title":"7.1. \n    Requiring 'self'\n  "}],"url":"#element-attrdef-iframe-csp"},
+"element-attrdef-iframe-csp": {"dfnID":"element-attrdef-iframe-csp","dfnText":"csp","external":false,"refSections":[{"refs":[{"id":"ref-for-element-attrdef-iframe-csp"},{"id":"ref-for-element-attrdef-iframe-csp\u2460"}],"title":"1.1. Examples"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2461"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2462"},{"id":"ref-for-element-attrdef-iframe-csp\u2463"},{"id":"ref-for-element-attrdef-iframe-csp\u2464"},{"id":"ref-for-element-attrdef-iframe-csp\u2465"},{"id":"ref-for-element-attrdef-iframe-csp\u2466"},{"id":"ref-for-element-attrdef-iframe-csp\u2467"},{"id":"ref-for-element-attrdef-iframe-csp\u2468"}],"title":"2.1. <iframe>\u2019s csp attribute"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u24ea"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2460"}],"title":"2.4. Integration with HTML"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2461"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-element-attrdef-iframe-csp\u2460\u2462"}],"title":"7.1. Requiring 'self'"}],"url":"#element-attrdef-iframe-csp"},
 "f1dafdec": {"dfnID":"f1dafdec","dfnText":"'none'","external":true,"refSections":[{"refs":[{"id":"ref-for-grammardef-none"},{"id":"ref-for-grammardef-none\u2460"},{"id":"ref-for-grammardef-none\u2461"}],"title":"3.1.3. Source List Intersection"},{"refs":[{"id":"ref-for-grammardef-none\u2462"}],"title":"3.1.4.2. Effective Source List"}],"url":"https://w3c.github.io/webappsec-csp/#grammardef-none"},
 "f23dc013": {"dfnID":"f23dc013","dfnText":"child navigable","external":true,"refSections":[{"refs":[{"id":"ref-for-child-navigable"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-child-navigable\u2460"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-child-navigable\u2461"},{"id":"ref-for-child-navigable\u2462"}],"title":"4.1. \n    Is response to request blocked by navigable\u2019s required CSP?\n  "},{"refs":[{"id":"ref-for-child-navigable\u2463"}],"title":"7.1. \n    Requiring 'self'\n  "}],"url":"https://html.spec.whatwg.org/multipage/document-sequences.html#child-navigable"},
 "f78d5b5c": {"dfnID":"f78d5b5c","dfnText":"origin","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-request-origin"}],"title":"4.1. \n    Is response to request blocked by navigable\u2019s required CSP?\n  "},{"refs":[{"id":"ref-for-concept-request-origin\u2460"}],"title":"4.2. \n    Does response allow blanket enforcement of policy from request?\n  "},{"refs":[{"id":"ref-for-concept-request-origin\u2461"},{"id":"ref-for-concept-request-origin\u2462"},{"id":"ref-for-concept-request-origin\u2463"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "},{"refs":[{"id":"ref-for-concept-request-origin\u2464"},{"id":"ref-for-concept-request-origin\u2465"},{"id":"ref-for-concept-request-origin\u2466"}],"title":"4.2.5. \n    Does content security policy object A subsume content security policy object B given\n    their respective origins?\n  "}],"url":"https://fetch.spec.whatwg.org/#concept-request-origin"},
 "f7b00a8b": {"dfnID":"f7b00a8b","dfnText":"header list (for response)","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-response-header-list"}],"title":"4.2. \n    Does response allow blanket enforcement of policy from request?\n  "}],"url":"https://fetch.spec.whatwg.org/#concept-response-header-list"},
 "f8600ca3": {"dfnID":"f8600ca3","dfnText":"report-uri","external":true,"refSections":[{"refs":[{"id":"ref-for-report-uri"}],"title":"2.1. <iframe>\u2019s csp attribute"}],"url":"https://w3c.github.io/webappsec-csp/#report-uri"},
 "f937b7b6": {"dfnID":"f937b7b6","dfnText":"continue","external":true,"refSections":[{"refs":[{"id":"ref-for-iteration-continue"}],"title":"3.1.1. CSP List intersection"},{"refs":[{"id":"ref-for-iteration-continue\u2460"},{"id":"ref-for-iteration-continue\u2461"},{"id":"ref-for-iteration-continue\u2462"},{"id":"ref-for-iteration-continue\u2463"}],"title":"3.1.2. Policy Intersection"},{"refs":[{"id":"ref-for-iteration-continue\u2464"},{"id":"ref-for-iteration-continue\u2465"},{"id":"ref-for-iteration-continue\u2466"}],"title":"3.1.3. Source List Intersection"},{"refs":[{"id":"ref-for-iteration-continue\u2467"},{"id":"ref-for-iteration-continue\u2468"},{"id":"ref-for-iteration-continue\u2460\u24ea"},{"id":"ref-for-iteration-continue\u2460\u2460"}],"title":"3.1.4.2. Effective Source List"},{"refs":[{"id":"ref-for-iteration-continue\u2460\u2461"},{"id":"ref-for-iteration-continue\u2460\u2462"},{"id":"ref-for-iteration-continue\u2460\u2463"}],"title":"4.2.4. \n    Does source list A subsume source listB given their respective origins\n    and directive names?\n  "},{"refs":[{"id":"ref-for-iteration-continue\u2460\u2464"},{"id":"ref-for-iteration-continue\u2460\u2465"},{"id":"ref-for-iteration-continue\u2460\u2466"},{"id":"ref-for-iteration-continue\u2460\u2467"}],"title":"4.2.5. \n    Does content security policy object A subsume content security policy object B given\n    their respective origins?\n  "}],"url":"https://infra.spec.whatwg.org/#iteration-continue"},
-"http-headerdef-allow-csp-from": {"dfnID":"http-headerdef-allow-csp-from","dfnText":"Allow-CSP-From","external":false,"refSections":[{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2460"}],"title":"1.1. Examples"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2461"},{"id":"ref-for-http-headerdef-allow-csp-from\u2462"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2463"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2464"}],"title":"3. Implicit Policy Acceptance"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2465"}],"title":"4.2. \n    Does response allow blanket enforcement of policy from request?\n  "},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2466"}],"title":"8. IANA Considerations"}],"url":"#http-headerdef-allow-csp-from"},
+"http-headerdef-allow-csp-from": {"dfnID":"http-headerdef-allow-csp-from","dfnText":"Allow-CSP-From","external":false,"refSections":[{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2460"}],"title":"1.1. Examples"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2461"},{"id":"ref-for-http-headerdef-allow-csp-from\u2462"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2463"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2464"}],"title":"3. Implicit Policy Acceptance"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2465"}],"title":"4.2. Does response allow blanket enforcement of policy from request?"},{"refs":[{"id":"ref-for-http-headerdef-allow-csp-from\u2466"}],"title":"8. IANA Considerations"}],"url":"#http-headerdef-allow-csp-from"},
 "http-headerdef-sec-required-csp": {"dfnID":"http-headerdef-sec-required-csp","dfnText":"Sec-Required-CSP","external":false,"refSections":[{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2460"},{"id":"ref-for-http-headerdef-sec-required-csp\u2461"}],"title":"1.1. Examples"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2462"},{"id":"ref-for-http-headerdef-sec-required-csp\u2463"}],"title":"2. Framework"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2464"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2465"}],"title":"5.4. Header Length"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2466"}],"title":"6.2. Data Exfiltration"},{"refs":[{"id":"ref-for-http-headerdef-sec-required-csp\u2467"}],"title":"8. IANA Considerations"}],"url":"#http-headerdef-sec-required-csp"},
 "iframe-csp-valid-attribute-value": {"dfnID":"iframe-csp-valid-attribute-value","dfnText":"valid attribute value","external":false,"refSections":[{"refs":[{"id":"ref-for-iframe-csp-valid-attribute-value"}],"title":"2.4.1. Navigable\u2019s Required CSP"}],"url":"#iframe-csp-valid-attribute-value"},
-"navigable-required-csp": {"dfnID":"navigable-required-csp","dfnText":"required CSP","external":false,"refSections":[{"refs":[{"id":"ref-for-navigable-required-csp"},{"id":"ref-for-navigable-required-csp\u2460"}],"title":"2.1. <iframe>\u2019s csp attribute"},{"refs":[{"id":"ref-for-navigable-required-csp\u2461"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-navigable-required-csp\u2462"},{"id":"ref-for-navigable-required-csp\u2463"},{"id":"ref-for-navigable-required-csp\u2464"}],"title":"2.4. Integration with HTML"},{"refs":[{"id":"ref-for-navigable-required-csp\u2465"},{"id":"ref-for-navigable-required-csp\u2466"},{"id":"ref-for-navigable-required-csp\u2467"},{"id":"ref-for-navigable-required-csp\u2468"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-navigable-required-csp\u2460\u24ea"},{"id":"ref-for-navigable-required-csp\u2460\u2460"}],"title":"4.1. \n    Is response to request blocked by navigable\u2019s required CSP?\n  "},{"refs":[{"id":"ref-for-navigable-required-csp\u2460\u2461"}],"title":"7.1. \n    Requiring 'self'\n  "}],"url":"#navigable-required-csp"},
-"source-expression-intersection": {"dfnID":"source-expression-intersection","dfnText":"intersection","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-intersection"}],"title":"3.1.3. Source List Intersection"},{"refs":[{"id":"ref-for-source-expression-intersection\u2460"},{"id":"ref-for-source-expression-intersection\u2461"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "}],"url":"#source-expression-intersection"},
-"source-expression-similar": {"dfnID":"source-expression-similar","dfnText":"source-expression similar","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-similar"},{"id":"ref-for-source-expression-similar\u2460"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-similar\u2461"},{"id":"ref-for-source-expression-similar\u2462"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "}],"url":"#source-expression-similar"},
-"source-expression-wildcard-host": {"dfnID":"source-expression-wildcard-host","dfnText":"wildcard host","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-wildcard-host"},{"id":"ref-for-source-expression-wildcard-host\u2460"},{"id":"ref-for-source-expression-wildcard-host\u2461"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-wildcard-host\u2462"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "}],"url":"#source-expression-wildcard-host"},
-"source-expression-wildcard-port": {"dfnID":"source-expression-wildcard-port","dfnText":"wildcard port","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-wildcard-port"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-wildcard-port\u2460"}],"title":"4.2.1. \n    What is an intersection of two expressions matching scheme-source or\n    host-source grammar A and B?\n  "}],"url":"#source-expression-wildcard-port"},
+"navigable-required-csp": {"dfnID":"navigable-required-csp","dfnText":"required CSP","external":false,"refSections":[{"refs":[{"id":"ref-for-navigable-required-csp"},{"id":"ref-for-navigable-required-csp\u2460"}],"title":"2.1. <iframe>\u2019s csp attribute"},{"refs":[{"id":"ref-for-navigable-required-csp\u2461"}],"title":"2.2. The Sec-Required-CSP HTTP Request Header"},{"refs":[{"id":"ref-for-navigable-required-csp\u2462"},{"id":"ref-for-navigable-required-csp\u2463"},{"id":"ref-for-navigable-required-csp\u2464"}],"title":"2.4. Integration with HTML"},{"refs":[{"id":"ref-for-navigable-required-csp\u2465"},{"id":"ref-for-navigable-required-csp\u2466"},{"id":"ref-for-navigable-required-csp\u2467"},{"id":"ref-for-navigable-required-csp\u2468"}],"title":"2.4.1. Navigable\u2019s Required CSP"},{"refs":[{"id":"ref-for-navigable-required-csp\u2460\u24ea"},{"id":"ref-for-navigable-required-csp\u2460\u2460"}],"title":"4.1. Is response to request blocked by navigable\u2019s required CSP?"},{"refs":[{"id":"ref-for-navigable-required-csp\u2460\u2461"}],"title":"7.1. Requiring 'self'"}],"url":"#navigable-required-csp"},
+"source-expression-intersection": {"dfnID":"source-expression-intersection","dfnText":"intersection","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-intersection"}],"title":"3.1.3. Source List Intersection"},{"refs":[{"id":"ref-for-source-expression-intersection\u2460"},{"id":"ref-for-source-expression-intersection\u2461"}],"title":"4.2.1. What is an intersection of two expressions matching scheme-source or host-source grammar A and B?"}],"url":"#source-expression-intersection"},
+"source-expression-similar": {"dfnID":"source-expression-similar","dfnText":"source-expression similar","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-similar"},{"id":"ref-for-source-expression-similar\u2460"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-similar\u2461"},{"id":"ref-for-source-expression-similar\u2462"}],"title":"4.2.1. What is an intersection of two expressions matching scheme-source or host-source grammar A and B?"}],"url":"#source-expression-similar"},
+"source-expression-wildcard-host": {"dfnID":"source-expression-wildcard-host","dfnText":"wildcard host","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-wildcard-host"},{"id":"ref-for-source-expression-wildcard-host\u2460"},{"id":"ref-for-source-expression-wildcard-host\u2461"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-wildcard-host\u2462"}],"title":"4.2.1. What is an intersection of two expressions matching scheme-source or host-source grammar A and B?"}],"url":"#source-expression-wildcard-host"},
+"source-expression-wildcard-port": {"dfnID":"source-expression-wildcard-port","dfnText":"wildcard port","external":false,"refSections":[{"refs":[{"id":"ref-for-source-expression-wildcard-port"}],"title":"3.1.4.3. Source Expression Similarity"},{"refs":[{"id":"ref-for-source-expression-wildcard-port\u2460"}],"title":"4.2.1. What is an intersection of two expressions matching scheme-source or host-source grammar A and B?"}],"url":"#source-expression-wildcard-port"},
 "source-list-intersection": {"dfnID":"source-list-intersection","dfnText":"intersection","external":false,"refSections":[{"refs":[{"id":"ref-for-source-list-intersection"}],"title":"3.1.2. Policy Intersection"}],"url":"#source-list-intersection"},
 };
 
