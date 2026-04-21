@@ -228,7 +228,8 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
           [=navigable/required CSP=].
 
   5.  The result of [$parse a serialized CSP|parsing$] |value| as "`enforce`" has a
-      [=policy/directive set=] that does not [=list/contain=] any of the following directives:
+      [=content security policy object/directive set=] that does not [=list/contain=] any of the
+      following directives:
 
       *   [=report-uri=]
       *   [=report-to=]
@@ -333,7 +334,7 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
       snapshots source snapshot params):
 
       1. <a lt="set the required CSP" abstract-op>Set the required CSP</a> for
-         <var ignore>navigable</var> given <var>sourceDocument</var>.
+         <var ignore>navigable</var> given <var ignore>sourceDocument</var>.
 
   4.  Add the following step to HTML's [=create navigation params by fetching=] algorithm, after
       `request` is created:
