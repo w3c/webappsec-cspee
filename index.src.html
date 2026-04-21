@@ -373,6 +373,11 @@ spec: CSP; urlPrefix: https://w3c.github.io/webappsec-csp/
 
   The following algorithm will execute at around step 10 of the current [=navigate=] algorithm:
 
+  ISSUE: This isn't right. We should probably capture the required CSP as part of the
+  "snapshotting-target-snapshot-params" algorithm that also grabs sandboxing flags and the referrer
+  policy, storing the new value as part of the "target snapshot params" struct. We'd then use that
+  value as part of the "navigation params" struct.
+
   <div algorithm="navigable's required CSP">
     To <dfn abstract-op>set the required CSP</dfn> for a given [=/navigable=] (|navigable|) and
     <code>Document</code>-or-null (|sourceDocument|), run the following steps:
