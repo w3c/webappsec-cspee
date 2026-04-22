@@ -1582,8 +1582,35 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   Security Considerations {#security-considerations}
   =======================
 
-  ISSUE: Define an explicit threat model covering embedder protection, embedee opt-in rationale, and
-  privacy concerns.
+  Threat Model {#threat-model}
+  ------------
+
+  This proposal aims to give documents control over the content used in a child frame which it
+  embeds. Since frames are generally considered to be security boundaries in themselves, limiting
+  cross-origin access quite intentionally, we should be sure to avoid weakening that boundary.
+
+  Our goals, then, are to:
+
+  *   Allow embedders to impose a Content Security Policy requirement upon arbitrary documents it
+      embeds.
+
+  *   Ensure that documents loaded with a given Content Security Policy requirement can't trivially
+      escape it (through, for instance, [=local scheme=] documents under its control). Putting the
+      requirement into each context's [=policy container=] allows us to rely on the same inheritance
+      structure as CSP itself, and also provides a clear point from which to continue imposing the
+      requirements upon documents which the embedee itself might choose to embed.
+
+  *   Ensure that documents loaded with a given Content Security Policy requirement have visibility
+      into the requirements being imposed, and opt-into them either explicitly (via the
+      [:Allow-CSP-From:] header) or implicitly (via the mechanisms outlined in
+      [[#implicit-opt-in]]). This protects embedees from malicious policy requirements which might
+      disable critical security infrastructure.
+
+  *   And, of course, to do the above without introducing new vulnerabilities or risks.
+
+  This proposal does not intend to supplant existing isolation mechanisms like CSP's
+  `frame-ancestors` or `X-Frame-Options`, nor does it provide embedees with any protection beyond
+  what <{iframe}> elements already represent.
 
   Policy Enforcement {#policy-enforcement}
   ------------------
@@ -1596,17 +1623,18 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   request with a Content Security Policy containing an appropriate <a>`frame-ancestors`</a>
   directive.
 
-  Header Injection {#header-injection}
-  ----------------
-
-  ISSUE: Spell out the concerns Mario raised in the thread around
-  <a href="https://twitter.com/0x6D6172696F/status/810066803653308416">https://twitter.com/0x6D6172696F/status/810066803653308416</a>.
-
-  Header Reflection {#header-reflection}
+  Header Reflection {#header-reflection-and-injection}
   -----------------
 
-  ISSUE: Spell out the concerns Mario raised in the thread around
-  <a href="https://twitter.com/0x6D6172696F/status/810066803653308416">https://twitter.com/0x6D6172696F/status/810066803653308416</a>.
+  Servers should be cautious about blindly reflecting the [:Sec-Required-CSP:] header into a
+  [:Content-Security-Policy:] response header, as the imposed policy might restrict the resulting
+  context in unexpected ways, or be weaker than the policy the server would otherwise apply.
+
+  Instead, developers are encouraged to evaluate incoming policies before accepting them by
+  delivering an [:Allow-CSP-From:] header for trusted origins. This ensures that policies the page
+  wishes to apply are applied, while layering the required policy on top. Since multiple policies
+  can only tighten the restrictions, this will ensure that the server's policy remains a solid
+  baseline protection.
 
   Header Length {#header-length}
   -------------
