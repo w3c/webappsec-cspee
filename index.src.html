@@ -435,26 +435,25 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   required policy, so the latter policy would actually allow more than the former, despite
   appearances.
 
-  To formalize the concept a bit, we need a few terms, and more than a few algorithms:
+  Here, we'll refer to the "at least as strict" concept as "subsumption". One
+  [=content security policy object=] (|A|) is said to
+  <dfn for="content security policy object" export lt="subsume|subsumed by">subsume</dfn> another
+  (|B|) if everything allowed by |B| is also allowed by |A|. In this case, |A| [=subsumes=] |B|,
+  or |B| is [=subsumed by=] |A|.
 
-  *   A [=content security policy object=] (|A|) is said to
-      <dfn for="content security policy object" export>subsume</dfn> another
-      [=content security policy object=] (|B|) if |B| is at least as strict as |A|. In this case |B|
-      could also be said to be <dfn for="content security policy object" export>subsumed by</dfn>
-      |A|. The details of determining "at least as strict"ness are spelled out in [[#subsumption]].
+  We're not always comparing single policies, though. When multiple policies are present in a
+  [=/CSP list=], they have a combined effect which is described in
+  [[CSP3#multiple-policies|"The effect of multiple policies"]]. Here, we'll talk about the
+  combined effect of a [=/CSP list=] as their [=CSP list/intersection=]. Details are spelled out
+  in [[#intersection]] below.
 
-  *   When multiple policies are present, they have a combined effect which is described in
-      [[CSP3#multiple-policies|"The effect of multiple policies"]]. Here, we'll talk about the
-      combined effect of a [=/CSP list=] as their [=CSP list/intersection=]. The details of
-      determining that are spelled out in [[#intersection]].
-
-  *   A [=content security policy object=] (|A|) is said to [=subsume=] a [=/CSP list=] if |A|
-      [=subsumes=] their [=CSP list/intersection=].
+  With [=CSP list/intersection=] defined, we can say that |A| [=subsumes=] a [=/CSP list=] iff
+  |A| [=subsumes=] that list's [=CSP list/intersection=].
 
   Intersection {#intersection}
   ------------
 
-  <h4 algorithm id="intersection-policy-list">CSP List intersection</h4>
+  ### CSP List intersectioni ### {#intersection-policy-list}
 
   The <dfn export for="CSP list">intersection</dfn> of a [=/CSP list=] (|list|) for an [=/origin=]
   (|origin|) is a single [=Content Security Policy object=] representing their net effect, produced
@@ -473,7 +472,7 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
 
   <ol class="algorithm">
     1.  Let |result| be a [=content security policy object=] with an empty
-        [=content security policy object/directive set=]
+        [=content security policy object/directive set=], and a
         [=content security policy object/disposition=] of "`enforce`".
 
     2.  For each |policy| in |list|:
@@ -493,22 +492,16 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
 
     <pre>
     «
-        "default-src 'self' http://example.com http://example.net;
-         connect-src 'none';",
-        "connect-src http://example.com/;
-         script-src http://example.com/",
-        "style-src 'self';
-         script-src http://example.com/ http://example.net",
+        "default-src 'self' http://example.com http://example.net; connect-src 'none';",
+        "connect-src http://example.com/; script-src http://example.com/",
+        "style-src 'self'; script-src http://example.com/ http://example.net",
     »
     </pre>
 
     is the policy created by parsing the following [=serialized CSP=]:
 
     <pre>
-      "default-src 'self' http://example.com http://example.net;
-       connect-src 'none';
-       script-src http://example.com/;
-       style-src 'self'"
+      "default-src 'self' http://example.com http://example.net; connect-src 'none'; script-src http://example.com/; style-src 'self'"
     </pre>
 
     Each policy specified in the initial list [=content security policy object/subsumes=] the
@@ -611,21 +604,17 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     The intersection of the policies obtained by parsing the following [=serialized CSPs=]:
 
     <pre>
-      "default-src 'self' http://example.com http://example.net;
-       connect-src 'none';"
+      "default-src 'self' http://example.com http://example.net; connect-src 'none';"
 
       and
 
-      "connect-src http://example.com/;
-       script-src http://example.com/"
+      "connect-src http://example.com/; script-src http://example.com/"
     </pre>
 
     is the policy obtained by parsing the following [=serialized CSP=]:
 
     <pre>
-      "default-src 'self' http://example.com http://example.net;
-       connect-src 'none';
-       script-src http://example.com/;
+      "default-src 'self' http://example.com http://example.net; connect-src 'none'; script-src http://example.com/;"
     </pre>
 
     Both of the given policies [=subsume=] the [=CSP list/intersection=]. For example, the
@@ -698,14 +687,14 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
             2.  If |expression B|'s <a grammar>`scheme-part`</a> matches one of the elements in
                 |schemes|, [=iteration/continue=] to the next |expression B|.
 
-            3.  If the result of executing [[#intersection-source-expressions]] is not `null` given
-                |expression A| and |expression B|, [=set/append=] the result to |intersection|.
+            3.  If the [=source expression/intersection=] of |expression A| and |expression B| is
+                not `null`, [=set/append=] the result to |intersection|.
 
     11.  Return |intersection|.
   </ol>
 
   <div class="example">
-    In these cases, `intersection` is an [=source expression/intersection=] for |A| and |B|.
+    In these cases, `intersection` is an [=source list/intersection=] for |A| and |B|.
 
     <pre>
       A = wss: http://example.com
@@ -737,6 +726,127 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     <a grammar>`hash-source`</a> expressions, |B| is effectively "'strict-dynamic' 'nonce-abc'".
     That is why the intersection is "'nonce-abc'".
   </div>
+
+  ### Source Expression Intersection ### {#intersection-source-expression}
+
+  A [=source expression=] is said to be an <dfn for="source expression">intersection</dfn> of two
+  other expressions matching <a grammar>`scheme-source`</a> or <a grammar>`host-source`</a> grammar
+  |A| and |B| if it contains the more restrictive <a grammar>`scheme-part`</a>,
+  <a grammar>`host-part`</a>, <a grammar>`port-part`</a>, and <a grammar>`path-part`</a> of the two.
+
+  <div class="example">
+    In these cases, `Intersect` is an [=source expression/intersection=] of |A| and |B|.
+
+    <pre>
+      A = https:
+      B = http:
+      Intersect = https:
+      // `http:` allows both `http:` and `https:`, so `https:` is the intersection.
+    </pre>
+
+    <pre>
+      A = http://*.example.com
+      B = https://sub.example.com:*
+      Intersect = https://sub.example.com:443
+      // A does not specify a port, so only default ports are allowed.
+    </pre>
+
+    <pre>
+      A = http://example.com:80/page1/html
+      B = https://example.com:443/
+      Intersect = `null`
+      // A is explicitly locked to port 80, which cannot match B's equally explicit port 443.
+    </pre>
+
+    <pre>
+      A = https:
+      B = http://example.com
+      Intersect = `https://example.com`.
+    </pre>
+
+    <pre>
+      A = https://sub.example.com:*
+      B = http://*.example.com/page.html
+      Intersect = `https://sub.example.com/page.html`
+    </pre>
+  </div>
+
+  #### `scheme-source` and `host-source` intersections #### {#intersection-source-expression-scheme-and-host}
+
+  <div algorithm="intersect scheme-source and host-source">
+  Given two [=source expressions=] matching the <a grammar>`scheme-source`</a> or
+  <a grammar>`host-source`</a> grammar (|A| and |B|), 
+  return their[=source expression/intersection=] if |A| is
+  [=source-expression similar=] to |B|. Otherwise, return `null`.
+
+  1.  If |A| is not [=source-expression similar=] to |B|, return `null`.
+
+  2.  Let |source| be an empty string.
+
+  3.  Let |scheme A| be |A|'s <a grammar>`scheme-part`</a>, if present, and `null` otherwise.
+
+  4.  Let |scheme B| be |B|'s <a grammar>`scheme-part`</a>, if present, and `null` otherwise.
+
+  5.  Let |more secure scheme B| be `true` if |scheme A| does not <a>`scheme-part` match</a>
+      |scheme B|, and `false` otherwise.
+
+  6.  Append |scheme A| and ":" to |source| if |scheme A| is not `null` and |more secure scheme B|
+      is `false`. Otherwise, append |scheme B| and ":" to |source| if |scheme B| is not `null`.
+
+  7.  If both |A| and |B| match the <a grammar>`scheme-source`</a> grammar, return |source|.
+
+  8.  Append "//" to |source| if it is not empty.
+
+  9.  Let |host A| be |A|'s <a grammar>`host-part`</a>, if present, and `null` otherwise.
+
+  10.  Let |host B| be |B|'s <a grammar>`host-part`</a>, if present, and `null` otherwise.
+
+  11.  If |host A| is not `null`:
+
+       1.  If |host B| is `null`, append |host A| to |source|. Continue to the next step in the main
+           algorithm.
+
+       2.  If |A| doesn't match the <a grammar>`scheme-source`</a> grammar and doesn't have a
+           [=source expression/wildcard host=], append |host A| to |source|.
+
+       3.  Otherwise, append |host B| to |source|.
+
+  12.  If |host A| is `null`, append |host B| to |source|.
+
+  13.  Let |port A| be |A|'s <a grammar>`port-part`</a>, if present, and `null` otherwise.
+
+  14.  Let |port B| be |B|'s <a grammar>`port-part`</a>, if present, and `null` otherwise.
+
+  15.  If |port A| is `null`, append ":" and |port B| to |source| if it is not `null`.
+
+  16.  If |port A| is not `null`:
+
+       1.  If |port B| is `null`, append ":" and |port A| to |source|. Continue to the next step in
+           the main algorithm.
+
+       2.  If |A| doesn't have a [=source expression/wildcard port=] and |more secure scheme B| is
+           `false`, append ":" and |port A| to |source|.
+
+       3.  Otherwise, append ":" and |port B| to |source|.
+
+  17.  Let |path A| be |A|'s <a grammar>`path-part`</a>, if present, and `null` otherwise.
+
+  18.  Let |path B| be |B|'s <a grammar>`path-part`</a>, if present, and `null` otherwise.
+
+  19.  If |path A| is `null`, append |path B| to |source| if it is not `null`.
+
+  20.  If |path A| is not `null`:
+
+       1.  If |path B| is `null`, return the result of appending |path A| to |source|.
+
+       2.  If |path A| <a>`path-part` matches</a> |path B|, append |path A| to |source|.
+
+       3.  Otherwise, append |path B| to |source|.
+
+  21.  Return |source|.
+
+  </div>
+
 
   ### Intersection Helpers ### {#intersection-helpers}
 
@@ -1081,256 +1191,117 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   Subsumption {#subsumption}
   -----------
 
-  ISSUE: Move all the subsumption algorithms into this section.
-</section>
+  ### CSP List Subsumption ### {#subsume-csp-list}
 
-<section>
-  <h2 id="algorithms">Algorithms</h2>
-
-  <h3 id="process-response" algorithm>
-    Is |response| to |request| blocked by |requiredCSP|?
-  </h3>
-
-  Given a [=response=] (|response|), a [=request=] (|request|), and a [=serialized CSP=]-or-null
-  (|requiredCSP|), this algorithm returns "`Allowed`" or "`Blocked`" as appropriate:
+  <div algorithm="subsume csp list">
+  Given a [=content security policy object=] |subsuming policy| with an <a for="/">origin</a>
+  (|subsuming origin|) and a [=/list=] of [=content security policy object=] objects |policy list|
+  with an <a for="/">origin</a> (|origin|), this algorithm returns "`Subsumes`" if
+  |subsuming policy| [=content security policy object/subsumes=] |policy list|, and returns "`Does
+  Not Subsume`" otherwise.
 
   <ol class="algorithm">
-    1.  Return "`Allowed`" if |requiredCSP| is `null`.
+    1.  If |subsuming policy| is `null`, return "`Subsumes`".
 
-    2.  Let |required policy| be the result of [=parse a serialized CSP|parsing=] |requiredCSP|
-        as "`enforce`".
+    2.  If |subsuming policy|'s [=content security policy object/disposition=] is "`report`", return
+        "`Subsumes`".
 
-    3.  If the [[#origin-allowed]] algorithm returns "`Allowed`" when executed upon |response| and
-        |request|, return "`Allowed`".
+    3.  If |subsuming policy|'s [=content security policy object/directive set=] [=list/is empty=],
+        return "`Subsumes`".
 
-    4.  If the [[#subsume-policy-list]] algorithm returns "`Subsumes`" when executed upon
-        |required policy|, |request|'s [=request/origin=], the result of
-        [$parse a response’s Content Security Policies|parsing$] |response|'s Content Security
-        Policies, and |response|'s [=response/url=]'s [=url/origin=], return "`Allowed`".
+    4.  If |policy list| is [=list/is empty=] or `null`, return "`Does Not Subsume`".
 
-    5.  Return "`Blocked`".
+    5.  Let |effective policy| the result of executing [[#intersection-policy-list]] given
+        |policy list| and |origin|.
+
+    6.  Return the result of executing [[#subsume-policy]] given |subsuming policy|,
+        |subsuming origin|, |effective policy|, and |origin|.
   </ol>
+  </div><!-- subsume policy list -->
 
-  <h3 id="origin-allowed" algorithm>
-    Does |response| allow blanket enforcement of policy from |request|?
-  </h3>
+  ### Policy Subsumption ### {#subsume-policy}
 
-  Given a [=response=] (|response|), and a [=request=] (|request|), this algorithm returns
-  "`Allowed`" if the former allows the latter to enforce arbitrary policy, and "`Not Allowed`"
-  otherwise:
+  <div algorithm="policy subsumption">
+  Given a [=content security policy object=] |A| with an [=request/origin=] (|origin A|) and a
+  [=content security policy object=] |B| with an [=request/origin=] (|origin B|), this algorithm
+  returns "`Subsumes`" if |A| [=content security policy object/subsumes=] |B|, and returns "`Does
+  Not Subsume`" otherwise.
 
+  1.  If |A|'s [=content security policy object/directive set=] [=list/is empty=], return
+      "`Subsumes`".
 
-  1.  If |response|'s [=response/url=]'s [=url/scheme=] is a [=local scheme=], return "`Allowed`".
+  2.  For each |directive A| in |A|'s [=content security policy object/directive set=]:
 
-      Note: The [=local scheme=] responses already inherit their policy from the embedder, so we
-      allow the embedder to tighten that policy via this embedding mechanism.
+      1.  Let |directive name| be |directive A|'s [=directive/name=].
 
-  2.  If |response|'s [=response/header list=] has a header named [:Allow-CSP-From:] (|header|):
+      2.  If |directive name| is "`default-src`", "`report-uri`", "`report-to`",
+          [=iteration/continue=].
 
-      1.  If |header|'s value is "`*`", return "`Allowed`".
+      3.  Let |effective directive A| be the [=effective directive value=] for |directive name| and
+          |A|.
 
-      2.  If |request|'s [=request/origin=], [=ASCII serialization of an origin|serialized=] and
-          [=UTF-8 encoded=] is |header|'s value, return "`Allowed`".
+      3.  Let |effective directive B| be the [=effective directive value=] for |directive name| and
+          |B|.
 
-  3.  Return "`Not Allowed`".
+      5.  If |effective directive A| is `null`, [=iteration/continue=].
 
-  <h4 id="intersection-source-expressions" algorithm>
-    What is an intersection of two expressions matching <a grammar>`scheme-source`</a> or
-    <a grammar>`host-source`</a> grammar |A| and |B|?
-  </h4>
+      6.  If |effective directive B| is `null`, return "`Does Not Subsume`".
 
-  [=Source expression=] is said to be an <dfn for="source expression">intersection</dfn> of two
-  other expressions matching <a grammar>`scheme-source`</a> or <a grammar>`host-source`</a> grammar
-  |A| and |B| if it contains the more restrictive <a grammar>`scheme-part`</a>,
-  <a grammar>`host-part`</a>, <a grammar>`port-part`</a>, and <a grammar>`path-part`</a> of the two.
+      7.  If |directive A|'s [=directive/name=] is "`frame-ancestors`":
 
-  <div class="example">
-    In these cases, `Intersect` is an [=source expression/intersection=] for |A| and |B|.
+          1.  If |effective directive B| is « "`'none'`" », [=iteration/continue=].
 
-    <pre>
-      A = https:
-      B = http:
-      Intersect = https:
-    </pre>
+          2.  If |effective directive A| is « "`'none'`" », return "`Does Not Subsume`".
 
-    <pre>
-      A = http://*.example.com
-      B = https://example.com:*
-      Intersect = https://example.com:443
-    </pre>
+          3.  For each |expression B| in |effective directive B|:
 
-    <pre>
-      A = http://example.com:80/page1/html
-      B = https://example.com:443/
-      Intersect = `null`
-    </pre>
+              1.  Let |found match| be `false`.
 
-    <pre>
-      A = https:
-      B = http://example.com
-      Intersect = `https://example.com`.
-    </pre>
+              2.  For each |expression A| in |effective directive A|:
 
-    <pre>
-      A = https://example.com:*
-      B = http://*.example.com/page.html
-      Intersect = `https://example.com/page.html`
-    </pre>
-  </div>
+                  1.  If [[#subsume-source-expressions]] returns "`Subsumes`" given |expression A|
+                      and |expression B|, set |found match| to `true`. Break out of this inner loop.
 
-  Given two expressions matching the <a grammar>`scheme-source`</a> or <a grammar>`host-source`</a>
-  grammar (|A| and |B|), return their [=source expression/intersection=] if |A| is
-  [=source-expression similar=] to |B|. Otherwise, return `null`.
+              4.  If |found match| is `false`, return "`Does Not Subsume`".
 
-  1.  If |A| is not [=source-expression similar=] to |B|, return `null`.
+      8.  If |directive A|'s [=directive/name=] is "`plugin-types`":
 
-  2.  Let |source| be an empty string.
+          1.  For each |type B| in |effective directive B|:
 
-  3.  Let |scheme A| be |A|'s <a grammar>`scheme-part`</a>, if present, and `null` otherwise.
+              1.  If |effective directive A| does not [=list/contain=] |type B|, return "`Does Not
+                  Subsume`".
 
-  4.  Let |scheme B| be |B|'s <a grammar>`scheme-part`</a>, if present, and `null` otherwise.
+      9.  If |directive A|'s [=directive/name=] is "`sandbox`":
 
-  5.  Let |more secure scheme B| be `true` if |scheme A| does not <a>`scheme-part` match</a>
-      |scheme B|, and `false` otherwise.
+          1.  Let |flags A| be the result of [=parsing a sandboxing directive=] given
+              |effective directive A|.
 
-  6.  Append |scheme A| and ":" to |source| if |scheme A| is not `null` and |more secure scheme B|
-      is `false`. Otherwise, append |scheme B| and ":" to |source| if |scheme B| is not `null`.
+          2.  Let |flags B| be the result of [=parsing a sandboxing directive=] given
+              |effective directive B|.
 
-  7.  If both |A| and |B| match the <a grammar>`scheme-source`</a> grammar, return |source|.
+          3.  For each |flag| in |flags A|:
 
-  8.  Append "//" to |source| if it is not empty.
+              1.  If |flags B| does not [=set/contain=] |flag|, return "`Does Not Subsume`".
 
-  9.  Let |host A| be |A|'s <a grammar>`host-part`</a>, if present, and `null` otherwise.
+          Note: A policy $A$ subsumes $B$ if $B$ is more restrictive. For sandbox flags, this means
+          every permission allowed by $A$ must also be allowed by $B$. If $B$ omits a flag that $A$
+          includes, $B$ is not at least as restrictive as $A$ for that specific permission.
 
-  10.  Let |host B| be |B|'s <a grammar>`host-part`</a>, if present, and `null` otherwise.
+      10. If |directive A|'s [=directive/name=] is "`disown-opener`", [=iteration/continue=].
 
-  11.  If |host A| is not `null`:
+      11. Otherwise:
 
-       1.  If |host B| is `null`, append |host A| to |source|. Continue to the next step in the main
-           algorithm.
+          1.  If the result of executing [[#subsume-source-list]] is "`Does Not Subsume`" given
+              |effective directive A|, |origin A|, |directive name|, |effective directive B|,
+              |origin B|, and |directive name|, return "`Does Not Subsume`".
 
-       2.  If |A| doesn't match the <a grammar>`scheme-source`</a> grammar and doesn't have a
-           [=source expression/wildcard host=], append |host A| to |source|.
+  3.  Return "`Subsumes`".
 
-       3.  Otherwise, append |host B| to |source|.
+  </div><!-- policy subsumption -->
 
-  12.  If |host A| is `null`, append |host B| to |source|.
+  ### Source List Subsumption ### {#subsume-source-list}
 
-  13.  Let |port A| be |A|'s <a grammar>`port-part`</a>, if present, and `null` otherwise.
-
-  14.  Let |port B| be |B|'s <a grammar>`port-part`</a>, if present, and `null` otherwise.
-
-  15.  If |port A| is `null`, append ":" and |port B| to |source| if it is not `null`.
-
-  16.  If |port A| is not `null`:
-
-       1.  If |port B| is `null`, append ":" and |port A| to |source|. Continue to the next step in
-           the main algorithm.
-
-       2.  If |A| doesn't have a [=source expression/wildcard port=] and |more secure scheme B| is
-           `false`, append ":" and |port A| to |source|.
-
-       3.  Otherwise, append ":" and |port B| to |source|.
-
-  17.  Let |path A| be |A|'s <a grammar>`path-part`</a>, if present, and `null` otherwise.
-
-  18.  Let |path B| be |B|'s <a grammar>`path-part`</a>, if present, and `null` otherwise.
-
-  19.  If |path A| is `null`, append |path B| to |source| if it is not `null`.
-
-  20.  If |path A| is not `null`:
-
-       1.  If |path B| is `null`, return the result of appending |path A| to |source|.
-
-       2.  If |path A| <a>`path-part` matches</a> |path B|, append |path A| to |source|.
-
-       3.  Otherwise, append |path B| to |source|.
-
-  21.  Return |source|.
-
-  <h4 id="rewrite-self" algorithm>
-    Rewrite `'self'` into a host-source expression for |origin|.
-  </h4>
-
-  Given an origin (|origin|), this algorithm returns a <a grammar>`host-source`</a> expression that
-  has the same effect as `'self'` for that origin:
-
-  1.  If |origin| is an [=opaque origin=], return the empty string.
-
-  2.  Return the <a lt="ascii serialization of an origin">ASCII serialization</a> of |origin|.
-
-  <h4 id="subsume-source-expressions" algorithm>
-    Does `source expression` |A| subsume `source expression` |B|?
-  </h4>
-
-  Given two [=source expressions=] |A| and |B|, this algorithm returns "`Subsumes`" if |A|
-  [=content security policy object/subsumes=] |B|, and returns "`Does Not Subsume`" otherwise.
-
-  1.  Assert: Neither |A| nor |B| match the <a grammar>`keyword-source`</a> grammar.
-
-  2.  If both |A| and |B| match either <a grammar>`host-source`</a> or
-      <a grammar>`scheme-source`</a> grammar:
-
-      1.  If [[csp3#match-schemes]] returns "`Does Not Match`" given |A|'s
-          <a grammar>`scheme-part`</a> (or `null` if |A| does not contain a
-          <a grammar>`scheme-part`</a>) and |B|'s <a grammar>`scheme-part`</a> (or `null` if |B|
-          does not contain a <a grammar>`scheme-part`</a>), return "`Does Not Subsume`".
-
-      2.  If |A| or |B| matches the <a grammar>`scheme-source`</a> grammar:
-
-          1.  If |A| matches the <a grammar>`scheme-source`</a> grammar, return "`Subsumes`".
-              Otherwise, return "`Does Not Subsume`".
-
-      3.  If |B| has a `wildcard host`:
-
-          1.  If |A| doesn't have a `wildcard host`, return "`Does not Subsume`".
-
-          2.  Let |remaining host B| be the result of removing the leading ("*.") from |B|'s
-              <a grammar>`host-part`</a>.
-
-          3.  If [[csp3#match-hosts]] returns "`Does Not Match`" given |A|'s
-              <a grammar>`host-part`</a> and |remaining host B|, return "`Does Not Subsume`".
-
-      3.  If |B| doesn't have a `wildcard host` and [[csp3#match-hosts]] returns "`Does Not Match`"
-          given |A|'s <a grammar>`host-part`</a> and |B|'s <a grammar>`host-part`</a>, return "`Does
-          Not Subsume`".
-
-      4.  If |B| has a `wildcard port` but |A| doesn't have a `wildcard port`, return "`Does Not
-          Subsume`".
-
-      5.  If |B| doesn't have a `wildcard port` and [[csp3#match-ports]] returns "`Does Not Match`"
-          given |A|'s <a grammar>`port-part`</a> (or `null` if |A| does not contain a
-          <a grammar>`port-part`</a>) and |B|'s <a grammar>`port-part`</a> (or `null` if |B| does
-          not contain a <a grammar>`port-part`</a>), return "`Does Not Subsume`".
-
-      6.  If [[csp3#match-paths]] returns "`Does Not Match`" given |A|'s <a grammar>`path-part`</a>
-          (or `null` if |A| does not contain a <a grammar>`path-part`</a>) and |B|'s
-          <a grammar>`path-part`</a> (or `null` if |B| does not contain a
-          <a grammar>`path-part`</a>), return "`Does Not Subsume`".
-
-      7.  Return "`Subsumes`".
-
-  3.  If both |A| and |B| match the <a grammar>`hash-source`</a> grammar:
-
-      1.  If |A| [=string/is=] |B|, return "`Subsumes`". Otherwise, return "`Does Not Subsume`".
-
-  4.  If both |A| and |B| match the <a grammar>`nonce-source`</a> grammar:
-
-      1.  Return "`Subsumes`".
-
-      Note: Nonce source matching is value-agnostic to prevent a malicious embedder from brute
-      forcing the nonce value with an attack as described in [[#policy-leakage]]
-
-  ISSUE: Subsumption for nonces and hashes should be updated to account for more permissive sources
-  (like 'self' or '*' combined with 'unsafe-inline') logically subsuming them.
-
-  5.  Return "`Does Not Subsume`".
-
-  <h4 id="subsume-source-list" algorithm>
-    Does [=source list=] |A| subsume [=source list=]|B| given their respective [=request/origins=]
-    and directive names?
-  </h4>
-
+  <div algorithm="source list subsumption">
   Given a [=source list=] |A| with an [=request/origin=] (|origin A|) and a string (|directive A|),
   [=source list=] |B| with an [=request/origin=] (|origin B|) and a string (|directive B|), this
   algorithm returns "`Subsumes`" if |A| [=content security policy object/subsumes=] |B|, and returns
@@ -1464,114 +1435,138 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     Neither |A| nor |B| [=source list/allows all inline behavior=]. In this case, |A|
     [=content security policy object/subsumes=] |B|.
   </div>
+  </div><!-- source list subsumption -->
 
-  <h4 id="subsume-policy" algorithm>
-    Does [=content security policy object=] |A| subsume [=content security policy object=] |B| given
-    their respective [=request/origins=]?
-  </h4>
+  ### Source expression subsumption ### {#subsume-source-expressions}
 
-  Given a [=content security policy object=] |A| with an [=request/origin=] (|origin A|) and a
-  [=content security policy object=] |B| with an [=request/origin=] (|origin B|), this algorithm
-  returns "`Subsumes`" if |A| [=content security policy object/subsumes=] |B|, and returns "`Does
-  Not Subsume`" otherwise.
+  <div algorithm="source expression subsumption">
+  Given two [=source expressions=] |A| and |B|, this algorithm returns "`Subsumes`" if |A|
+  [=content security policy object/subsumes=] |B|, and returns "`Does Not Subsume`" otherwise.
 
-  1.  If |A|'s [=content security policy object/directive set=] [=list/is empty=], return
-      "`Subsumes`".
+  1.  Assert: Neither |A| nor |B| match the <a grammar>`keyword-source`</a> grammar.
 
-  2.  For each |directive A| in |A|'s [=content security policy object/directive set=]:
+  2.  If both |A| and |B| match either <a grammar>`host-source`</a> or
+      <a grammar>`scheme-source`</a> grammar:
 
-      1.  Let |directive name| be |directive A|'s [=directive/name=].
+      1.  If [[csp3#match-schemes]] returns "`Does Not Match`" given |A|'s
+          <a grammar>`scheme-part`</a> (or `null` if |A| does not contain a
+          <a grammar>`scheme-part`</a>) and |B|'s <a grammar>`scheme-part`</a> (or `null` if |B|
+          does not contain a <a grammar>`scheme-part`</a>), return "`Does Not Subsume`".
 
-      2.  If |directive name| is "`default-src`", "`report-uri`", "`report-to`",
-          [=iteration/continue=].
+      2.  If |A| or |B| matches the <a grammar>`scheme-source`</a> grammar:
 
-      3.  Let |effective directive A| be the [=effective directive value=] for |directive name| and
-          |A|.
+          1.  If |A| matches the <a grammar>`scheme-source`</a> grammar, return "`Subsumes`".
+              Otherwise, return "`Does Not Subsume`".
 
-      3.  Let |effective directive B| be the [=effective directive value=] for |directive name| and
-          |B|.
+      3.  If |B| has a `wildcard host`:
 
-      5.  If |effective directive A| is `null`, [=iteration/continue=].
+          1.  If |A| doesn't have a `wildcard host`, return "`Does not Subsume`".
 
-      6.  If |effective directive B| is `null`, return "`Does Not Subsume`".
+          2.  Let |remaining host B| be the result of removing the leading ("*.") from |B|'s
+              <a grammar>`host-part`</a>.
 
-      7.  If |directive A|'s [=directive/name=] is "`frame-ancestors`":
+          3.  If [[csp3#match-hosts]] returns "`Does Not Match`" given |A|'s
+              <a grammar>`host-part`</a> and |remaining host B|, return "`Does Not Subsume`".
 
-          1.  If |effective directive B| is « "`'none'`" », [=iteration/continue=].
+      3.  If |B| doesn't have a `wildcard host` and [[csp3#match-hosts]] returns "`Does Not Match`"
+          given |A|'s <a grammar>`host-part`</a> and |B|'s <a grammar>`host-part`</a>, return "`Does
+          Not Subsume`".
 
-          2.  If |effective directive A| is « "`'none'`" », return "`Does Not Subsume`".
+      4.  If |B| has a `wildcard port` but |A| doesn't have a `wildcard port`, return "`Does Not
+          Subsume`".
 
-          3.  For each |expression B| in |effective directive B|:
+      5.  If |B| doesn't have a `wildcard port` and [[csp3#match-ports]] returns "`Does Not Match`"
+          given |A|'s <a grammar>`port-part`</a> (or `null` if |A| does not contain a
+          <a grammar>`port-part`</a>) and |B|'s <a grammar>`port-part`</a> (or `null` if |B| does
+          not contain a <a grammar>`port-part`</a>), return "`Does Not Subsume`".
 
-              1.  Let |found match| be `false`.
+      6.  If [[csp3#match-paths]] returns "`Does Not Match`" given |A|'s <a grammar>`path-part`</a>
+          (or `null` if |A| does not contain a <a grammar>`path-part`</a>) and |B|'s
+          <a grammar>`path-part`</a> (or `null` if |B| does not contain a
+          <a grammar>`path-part`</a>), return "`Does Not Subsume`".
 
-              2.  For each |expression A| in |effective directive A|:
+      7.  Return "`Subsumes`".
 
-                  1.  If [[#subsume-source-expressions]] returns "`Subsumes`" given |expression A|
-                      and |expression B|, set |found match| to `true`. Break out of this inner loop.
+  3.  If both |A| and |B| match the <a grammar>`hash-source`</a> grammar:
 
-              4.  If |found match| is `false`, return "`Does Not Subsume`".
+      1.  If |A| [=string/is=] |B|, return "`Subsumes`". Otherwise, return "`Does Not Subsume`".
 
-      8.  If |directive A|'s [=directive/name=] is "`plugin-types`":
+  4.  If both |A| and |B| match the <a grammar>`nonce-source`</a> grammar:
 
-          1.  For each |type B| in |effective directive B|:
+      1.  Return "`Subsumes`".
 
-              1.  If |effective directive A| does not [=list/contain=] |type B|, return "`Does Not
-                  Subsume`".
+      Note: Nonce source matching is value-agnostic to prevent a malicious embedder from brute
+      forcing the nonce value with an attack as described in [[#policy-leakage]]
 
-      9.  If |directive A|'s [=directive/name=] is "`sandbox`":
+  5.  Return "`Does Not Subsume`".
 
-          1.  Let |flags A| be the result of [=parsing a sandboxing directive=] given
-              |effective directive A|.
+  ISSUE: Subsumption for nonces and hashes should be updated to account for more permissive sources
+  (like 'self' or '*' combined with 'unsafe-inline') logically subsuming them.
+  </div><!-- source expression subsumption -->
+</section>
 
-          2.  Let |flags B| be the result of [=parsing a sandboxing directive=] given
-              |effective directive B|.
+<section>
+  <h2 id="algorithms">Algorithms</h2>
 
-          3.  For each |flag| in |flags A|:
-
-              1.  If |flags B| does not [=set/contain=] |flag|, return "`Does Not Subsume`".
-
-          Note: A policy $A$ subsumes $B$ if $B$ is more restrictive. For sandbox flags, this means
-          every permission allowed by $A$ must also be allowed by $B$. If $B$ omits a flag that $A$
-          includes, $B$ is not at least as restrictive as $A$ for that specific permission.
-
-      10. If |directive A|'s [=directive/name=] is "`disown-opener`", [=iteration/continue=].
-
-      11. Otherwise:
-
-          1.  If the result of executing [[#subsume-source-list]] is "`Does Not Subsume`" given
-              |effective directive A|, |origin A|, |directive name|, |effective directive B|,
-              |origin B|, and |directive name|, return "`Does Not Subsume`".
-
-    3.  Return "`Subsumes`".
-
-  <h3 id="subsume-policy-list" algorithm>
-    Does |subsuming policy| subsume |policy list| given their respective <a for="/">origins</a>?
+  <h3 id="process-response" algorithm>
+    Is |response| to |request| blocked by |requiredCSP|?
   </h3>
 
-  Given a [=content security policy object=] |subsuming policy| with an <a for="/">origin</a>
-  (|subsuming origin|) and a [=/list=] of [=content security policy object=] objects |policy list|
-  with an <a for="/">origin</a> (|origin|), this algorithm returns "`Subsumes`" if
-  |subsuming policy| [=content security policy object/subsumes=] |policy list|, and returns "`Does
-  Not Subsume`" otherwise.
+  Given a [=response=] (|response|), a [=request=] (|request|), and a [=serialized CSP=]-or-null
+  (|requiredCSP|), this algorithm returns "`Allowed`" or "`Blocked`" as appropriate:
 
   <ol class="algorithm">
-    1.  If |subsuming policy| is `null`, return "`Subsumes`".
+    1.  Return "`Allowed`" if |requiredCSP| is `null`.
 
-    2.  If |subsuming policy|'s [=content security policy object/disposition=] is "`report`", return
-        "`Subsumes`".
+    2.  Let |required policy| be the result of [=parse a serialized CSP|parsing=] |requiredCSP|
+        as "`enforce`".
 
-    3.  If |subsuming policy|'s [=content security policy object/directive set=] [=list/is empty=],
-        return "`Subsumes`".
+    3.  If the [[#origin-allowed]] algorithm returns "`Allowed`" when executed upon |response| and
+        |request|, return "`Allowed`".
 
-    4.  If |policy list| is [=list/is empty=] or `null`, return "`Does Not Subsume`".
+    4.  If the [[#subsume-csp-list]] algorithm returns "`Subsumes`" when executed upon
+        |required policy|, |request|'s [=request/origin=], the result of
+        [$parse a response’s Content Security Policies|parsing$] |response|'s Content Security
+        Policies, and |response|'s [=response/url=]'s [=url/origin=], return "`Allowed`".
 
-    5.  Let |effective policy| the result of executing [[#intersection-policy-list]] given
-        |policy list| and |origin|.
-
-    6.  Return the result of executing [[#subsume-policy]] given |subsuming policy|,
-        |subsuming origin|, |effective policy|, and |origin|.
+    5.  Return "`Blocked`".
   </ol>
+
+  <h3 id="origin-allowed" algorithm>
+    Does |response| allow blanket enforcement of policy from |request|?
+  </h3>
+
+  Given a [=response=] (|response|), and a [=request=] (|request|), this algorithm returns
+  "`Allowed`" if the former allows the latter to enforce arbitrary policy, and "`Not Allowed`"
+  otherwise:
+
+
+  1.  If |response|'s [=response/url=]'s [=url/scheme=] is a [=local scheme=], return "`Allowed`".
+
+      Note: The [=local scheme=] responses already inherit their policy from the embedder, so we
+      allow the embedder to tighten that policy via this embedding mechanism.
+
+  2.  If |response|'s [=response/header list=] has a header named [:Allow-CSP-From:] (|header|):
+
+      1.  If |header|'s value is "`*`", return "`Allowed`".
+
+      2.  If |request|'s [=request/origin=], [=ASCII serialization of an origin|serialized=] and
+          [=UTF-8 encoded=] is |header|'s value, return "`Allowed`".
+
+  3.  Return "`Not Allowed`".
+
+
+  <h4 id="rewrite-self" algorithm>
+    Rewrite `'self'` into a host-source expression for |origin|.
+  </h4>
+
+  Given an origin (|origin|), this algorithm returns a <a grammar>`host-source`</a> expression that
+  has the same effect as `'self'` for that origin:
+
+  1.  If |origin| is an [=opaque origin=], return the empty string.
+
+  2.  Return the <a lt="ascii serialization of an origin">ASCII serialization</a> of |origin|.
+
 </section>
 
 <!--
