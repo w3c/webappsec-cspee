@@ -379,10 +379,24 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
           1.  Let |required policy| be the result of [=parse a serialized CSP|parsing=]
               |requiredCSP| as "`enforce`".
 
-          2.  [=list/Append=] |required policy| to <var ignore>result</var>'s
-              [=policy container/CSP list=].
+          2.  Let |response policies| be the result of [$parse a response’s Content Security Policies|parsing$]
+              |response|'s Content Security Policies.
 
-          3.  Set <var ignore>result</var>'s [=policy container/required CSP=] to |requiredCSP|.
+          3.  If [[#subsume-csp-list]] returns "`Does Not Subsume`" when executed upon
+              |required policy|, |response|'s [=response/url=]'s [=url/origin=], |response policies|,
+              and |response|'s [=response/url=]'s [=url/origin=]:
+
+              1.  [=list/Append=] |required policy| to <var ignore>result</var>'s
+                  [=policy container/CSP list=].
+
+              Note: If the response's policies already subsume the required policy, we do not append
+              the required policy to the policy container. This ensures that if an embedder requires
+              a specific nonce (e.g. `nonce-abc`), and the embedee provides its own compatible nonce
+              (e.g. `nonce-xyz`), the user agent only enforces the embedee's nonce. If we were to
+              append both, the document would effectively block all scripts, as no script could
+              satisfy both nonces simultaneously.
+
+          4.  Set <var ignore>result</var>'s [=policy container/required CSP=] to |requiredCSP|.
 
   11. Update [=create navigation params by fetching=] to pass
       <var ignore>targetSnapshotParams</var>'s [=target snapshot params/required CSP=] to
@@ -453,7 +467,7 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   Intersection {#intersection}
   ------------
 
-  ### CSP List intersectioni ### {#intersection-policy-list}
+  ### CSP List intersection ### {#intersection-policy-list}
 
   The <dfn export for="CSP list">intersection</dfn> of a [=/CSP list=] (|list|) for an [=/origin=]
   (|origin|) is a single [=Content Security Policy object=] representing their net effect, produced
@@ -1525,7 +1539,7 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
         |request|, return "`Allowed`".
 
     4.  If the [[#subsume-csp-list]] algorithm returns "`Subsumes`" when executed upon
-        |required policy|, |request|'s [=request/origin=], the result of
+        |required policy|, |response|'s [=response/url=]'s [=url/origin=], the result of
         [$parse a response’s Content Security Policies|parsing$] |response|'s Content Security
         Policies, and |response|'s [=response/url=]'s [=url/origin=], return "`Allowed`".
 
