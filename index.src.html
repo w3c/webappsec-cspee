@@ -264,8 +264,7 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     *  `💩`
 
     Note: We need to be careful about the values we allow in the <{iframe/csp}> attribute, as its
-    contents will end up reflected as an HTTP request header. This concern is discussed in a little
-    more detail in [[#header-injection]].
+    contents will end up reflected as an HTTP request header.
   </div>
 
   <{iframe}>'s <{iframe/csp}> [=attribute=] has a corresponding IDL attribute, defined by the
@@ -295,11 +294,11 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     Sec-Required-CSP = <a grammar>serialized-policy</a>
   </pre>
 
-  A user agent MUST NOT send more than one HTTP response header field named "`Sec-Required-CSP`",
+  A user agent MUST NOT send more than one HTTP request header field named "`Sec-Required-CSP`",
   and any such header MUST NOT contain more than one <a grammar>serialized-policy</a>.
 
   Servers MUST process only the first policy in the first such header received. As discussed in
-  [[#header-reflection]], servers SHOULD also carefully consider the implications of simply
+  [[#header-reflection-and-injection]], servers SHOULD also carefully consider the implications of simply
   reflecting a policy back to a client. If the server wishes to simply accept an embedder's
   requirements, the [:Allow-CSP-From:] header is a safer choice.
 
