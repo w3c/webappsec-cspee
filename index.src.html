@@ -158,11 +158,75 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
       <a http-header>Content-Security-Policy</a>: script-src https://trusted-cdn.example.com/, object-src 'none'
     </pre>
 
-    The "`,`" in the [:Content-Security-Policy:] header's value splits the string into two
-    serialized policies, each of which is enforced. The user agent verifies that one of the policies
-    delivered with the response matches the requirement, and since additional policies can only make
-    the <em>effective</em> policy for the page more restrictive, allows the frame to load
+    The "`,`" in the [:Content-Security-Policy:] header's value splits the string into two serialized
+    enforcing policies. The user agent computes the intersection of all enforcing response policies
+    and verifies the resulting effective policy against the requirement. Here, the first policy
+    supplies "`script-src`", and the second adds "`object-src 'none'`", so the frame loads
     successfully.
+  </div>
+
+  <div class="example" id="trusted-types-examples">
+    An embedder can require an embedded document to enforce Trusted Types [[!TRUSTED-TYPES]]:
+
+    <pre>
+      &lt;iframe src="https://advertisements-r-us.example.com/ad1.cfm"
+              <a for="iframe" element-attr>csp</a>="require-trusted-types-for 'script'; trusted-types office-embed"&gt;
+      &lt;/iframe&gt;
+    </pre>
+
+    A response containing the following policy is accepted by the conservative subsumption check:
+
+    <pre>
+      <a http-header>Content-Security-Policy</a>: require-trusted-types-for 'script'; trusted-types office-embed
+    </pre>
+
+    A response is blocked by this check if its aggregate effective policy omits "`trusted-types`", or
+    specifies a different configuration such as "`trusted-types office-preview`". It is likewise
+    blocked if its aggregate effective policy omits "`require-trusted-types-for`" when the attribute
+    requires that directive. Conversely, if the <{iframe/csp}> value omits either directive, that
+    directive imposes no requirement on the response.
+
+    Multiple enforcing response policies are considered together. For example, these policies are
+    also accepted by the check:
+
+    <pre>
+      <a http-header>Content-Security-Policy</a>: trusted-types *
+      <a http-header>Content-Security-Policy</a>: require-trusted-types-for 'script'; trusted-types office-embed 'allow-duplicates'
+      <a http-header>Content-Security-Policy</a>: object-src 'none'
+    </pre>
+
+    Their intersection allows only the "`office-embed`" policy name, does not allow duplicate policy
+    names, and requires Trusted Types for the "`'script'`" sink group. The result therefore has the
+    same normalized enforcement configuration as the required policy. Omitting the Trusted Types
+    directives from the third enforcing policy does not alter that configuration. A report-only
+    policy is excluded from the enforcement intersection: it neither supplies a required sink group
+    nor restricts the allowed policy names, though it can report violations.
+
+    <div class="note">
+      "`'allow-duplicates'`" permits repeated <code>trustedTypes.createPolicy()</code> calls with the
+      same policy name. "`*`" allows every policy name, but does not itself allow duplicates. If the
+      effective policy has no "`trusted-types`" directive, policy creation is unrestricted. When
+      multiple enforcing "`trusted-types`" directives apply, duplicates are permitted only if every
+      applicable directive contains "`'allow-duplicates'`".
+    </div>
+
+    Source-list and Trusted Types checks are combined. For example:
+
+    <pre>
+      &lt;iframe src="https://advertisements-r-us.example.com/ad1.cfm"
+              <a for="iframe" element-attr>csp</a>="script-src https://trusted-cdn.example.com/; require-trusted-types-for 'script'; trusted-types office-embed"&gt;
+      &lt;/iframe&gt;
+    </pre>
+
+    A response is accepted by the conservative subsumption check only if its effective policy passes
+    both the "`script-src`" check and both Trusted Types directive checks. Passing only the
+    source-list checks or only the Trusted Types checks is not sufficient.
+
+    Required CSP also applies when the embedded document creates a nested <{iframe}>. The nested
+    <{iframe/csp}> value must satisfy the inherited Trusted Types requirements and all other inherited
+    directives to pass the <a for="iframe/csp">valid attribute value</a> check. Otherwise,
+    [$determine the required CSP$] falls back to the required CSP inherited from the containing
+    document, so the nested navigation cannot loosen the inherited requirement.
   </div>
 </section>
 
@@ -555,61 +619,91 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
 
         1.  If |directive name| is "`report-uri`", "`report-to`", [=iteration/continue=].
 
-        2.  Let |directive A| be the [=effective directive value=] for |directive name| and |A|.
+        2.  Let |directive value A| be the [=effective directive value=] for |directive name| and
+            |A|.
 
-        3.  Let |directive B| be the [=effective directive value=] for |directive name| and |B|.
+        3.  Let |directive value B| be the [=effective directive value=] for |directive name| and
+            |B|.
 
-        4.  Assert: |directive A| and |directive B| are not both `null`, and either both of their
-            [=directive/values=] are [=source lists=], or neither of their [=directive/values=] are
-            [=source lists=].
+        4.  Assert: |directive value A| and |directive value B| are not both `null`.
 
-        5.  If either |directive A| or |directive B| has a [=directive/value=] which is not a
-            [=source list=], [=iteration/continue=].
+        5.  If either |directive value A| or |directive value B| is `null`:
 
-            ISSUE: We need to extend this definition to handle things that are not source lists.
-            Also, we should be more precise about this, perhaps by defining a term like "source list
-            directive" that we could check against |directive name|.
+            1.  Let |directive value| be |directive value B| if |directive value A| is `null`, and
+                |directive value A| otherwise.
 
-        6.  If |directive A| is `null`:
+            2.  If |directive name| is neither "`trusted-types`" nor "`require-trusted-types-for`",
+                and |directive value| is not a [=source list=], [=iteration/continue=].
 
-            1.  Let |directive| be a new [=directive=] with the following properties:
-
-                :   [=directive/name=]
-                ::  |directive name|
-                :   [=directive/value=]
-                ::  |directive B|'s [=directive/value=]
-
-            2.  [=set/append=] a |directive| to |policy|'s
-                [=content security policy object/directive set=].
-
-            3.  [=iteration/Continue=].
-
-        7.  If |directive B| is `null`:
-
-            1.  Let |directive| be a new [=directive=] with the following properties:
-
-                :   [=directive/name=]
-                ::  |directive name|
-                :   [=directive/value=]
-                ::  |directive A|'s [=directive/value=]
-
-            2.  [=set/append=] a |directive| to |policy|'s
-                [=content security policy object/directive set=].
-
-            3.  [=iteration/Continue=].
-
-        8.  Let |directive value| be the [=source list/intersection=] of |directive A|'s
-            [=directive/value=], |directive B|'s [=directive/value=], |directive name|, and
-            |origin|.
-
-        9.  Let |directive| be a new [=directive=] with he following properties:
+            3.  Let |directive| be a new [=directive=] with the following properties:
 
                 :   [=directive/name=]
                 ::  |directive name|
                 :   [=directive/value=]
                 ::  |directive value|
 
-        10. [=set/Append=] |directive| to |policy|'s [=directive set=].
+            4.  [=set/append=] |directive| to |policy|'s
+                [=content security policy object/directive set=].
+
+            5.  [=iteration/Continue=].
+
+        6.  If |directive name| is "`trusted-types`":
+
+            1.  Let |directive value| be the result of executing
+                [=trusted-types directive-value intersection=] given |directive value A| and
+                |directive value B|.
+
+            2.  Let |directive| be a new [=directive=] with the following properties:
+
+                :   [=directive/name=]
+                ::  |directive name|
+                :   [=directive/value=]
+                ::  |directive value|
+
+            3.  [=set/append=] |directive| to |policy|'s
+                [=content security policy object/directive set=].
+
+            4.  [=iteration/Continue=].
+
+        7.  If |directive name| is "`require-trusted-types-for`":
+
+            1.  Let |directive value| be the result of executing
+                [=require-trusted-types-for directive value intersection=] given
+                |directive value A| and |directive value B|.
+
+            2.  Let |directive| be a new [=directive=] with the following properties:
+
+                :   [=directive/name=]
+                ::  |directive name|
+                :   [=directive/value=]
+                ::  |directive value|
+
+            3.  [=set/append=] |directive| to |policy|'s
+                [=content security policy object/directive set=].
+
+            4.  [=iteration/Continue=].
+
+        8.  Assert: |directive value A| and |directive value B| are either both [=source lists=] or
+            neither is a [=source list=].
+
+        9.  If |directive value A| or |directive value B| is not a [=source list=],
+            [=iteration/continue=].
+
+            ISSUE: We need to extend this definition to handle other values that are not source
+            lists. We should also be more precise about this, perhaps by defining a term like "source
+            list directive" that we could check against |directive name|.
+
+        10. Let |directive value| be the [=source list/intersection=] of |directive value A|,
+            |directive value B|, |directive name|, and |origin|.
+
+        11. Let |directive| be a new [=directive=] with the following properties:
+
+            :   [=directive/name=]
+            ::  |directive name|
+            :   [=directive/value=]
+            ::  |directive value|
+
+        12. [=set/Append=] |directive| to |policy|'s [=directive set=].
 
     9.  Return |policy|.
   </ol>
@@ -960,8 +1054,10 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
         : "`form-action`"
         : "`plugin-types`"
         : "`report-uri`"
+        : "`require-trusted-types-for`"
         : "`require-sri-for`"
         : "`sandbox`"
+        : "`trusted-types`"
         : "`upgrade-insecure-requests`"
         ::  1.  If |policy|'s [=directive set=] [=set/contains=] a [=directive=] whose
                 [=directive/name=] is |name|, return that [=directive=]'s [=directive/value=].
@@ -1199,6 +1295,199 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
     The two sources are not similar because their paths do not match.
   </div>
 
+  #### Trusted Types Enforcement Configuration #### {#trusted-types-configuration}
+
+  The "`trusted-types`" directive and its value syntax are defined by Trusted Types
+  [[!TRUSTED-TYPES]] in its
+  <a href="https://w3c.github.io/trusted-types/dist/spec/#trusted-types-csp-directive">`trusted-types`
+  directive section</a>.
+
+  A <dfn>Trusted Types enforcement configuration</dfn> is a [=struct=] with the following items:
+
+  : <dfn for="Trusted Types enforcement configuration">allowed policy names</dfn>
+  :: Either the special value `*` or a [=/set=] of case-sensitive policy-name strings.
+  : <dfn for="Trusted Types enforcement configuration">allow duplicates</dfn>
+  :: A [=/boolean=].
+
+  Two [=Trusted Types enforcement configurations=] are <dfn for="Trusted Types enforcement
+  configuration">equal</dfn> if their [=Trusted Types enforcement configuration/allow duplicates=]
+  values are equal and either:
+
+  *   Both configurations' [=Trusted Types enforcement configuration/allowed policy names=] are the
+      special value `*`; or
+  *   Both configurations' [=Trusted Types enforcement configuration/allowed policy names=] are
+      finite sets containing exactly the same strings.
+
+  Policy names are compared using [=string/is=], so policy-name matching is case-sensitive.
+
+  <div algorithm="normalize a trusted types directive value">
+    To <dfn data-lt="normalize a trusted-types directive value">normalize a
+    <code>trusted-types</code> directive value</dfn> given a [=directive/value=] |value|:
+
+    1.  Let |configuration| be a new [=Trusted Types enforcement configuration=] whose
+        [=Trusted Types enforcement configuration/allowed policy names=] is an empty [=/set=] and
+        whose [=Trusted Types enforcement configuration/allow duplicates=] is `false`.
+
+    2.  Let |allows duplicates| be `false`.
+
+    3.  For each |token| in |value|:
+
+        1.  If |token| [=string/is=] the string token "`*`", set |configuration|'s
+            [=Trusted Types enforcement configuration/allowed policy names=] to the special value `*`
+            and [=iteration/continue=].
+
+        2.  If |token| is an [=ASCII case-insensitive=] match for "`'allow-duplicates'`", set
+            |allows duplicates| to `true` and [=iteration/continue=].
+
+        3.  If |token| is an [=ASCII case-insensitive=] match for "`'none'`",
+            [=iteration/continue=].
+
+        4.  If |token| is a valid policy-name token according to the
+            <a href="https://w3c.github.io/trusted-types/dist/spec/#trusted-types-csp-directive">Trusted
+            Types `trusted-types` directive syntax</a>, and |configuration|'s
+            [=Trusted Types enforcement configuration/allowed policy names=] is not the special value
+            `*`, [=set/append=] |token| to it.
+
+        5.  Otherwise, |token| does not affect |configuration|.
+
+    4.  If |configuration|'s [=Trusted Types enforcement configuration/allowed policy names=] is an
+        empty set, return |configuration|.
+
+    5.  Set |configuration|'s [=Trusted Types enforcement configuration/allow duplicates=] to
+        |allows duplicates|.
+
+    6.  Return |configuration|.
+  </div>
+
+  <div class="note">
+    *   "`'none'`" produces an empty allowed-name set unless the same value contains the string token
+        "`*`" or a valid policy name.
+    *   Within one directive, the string token "`*`" makes explicit policy names redundant. It does
+        not imply "`'allow-duplicates'`".
+    *   Across policies, the special value `*` is the identity for allowed-name intersection; it does
+        not override a finite or empty set.
+    *   Repeated tokens and token order are irrelevant.
+    *   Unrecognized tokens have no effect.
+    *   An empty allowed-name set forces [=Trusted Types enforcement configuration/allow duplicates=]
+        to `false`.
+  </div>
+
+  <div algorithm="serialize a trusted types enforcement configuration">
+    To <dfn>serialize a Trusted Types enforcement configuration</dfn> given a
+    [=Trusted Types enforcement configuration=] |configuration|:
+
+    1.  If |configuration|'s [=Trusted Types enforcement configuration/allowed policy names=] is an
+        empty set, return « "`'none'`" ».
+
+    2.  Let |result| be an empty [=/list=].
+
+    3.  If |configuration|'s [=Trusted Types enforcement configuration/allowed policy names=] is the
+        special value `*`, [=list/append=] the string token "`*`" to |result|.
+
+    4.  Otherwise:
+
+        1.  Let |names| be a [=/list=] containing the strings in |configuration|'s
+            [=Trusted Types enforcement configuration/allowed policy names=].
+
+        2.  Sort |names| in ascending order with [=code unit less than=].
+
+        3.  For each |name| in |names|, [=list/append=] |name| to |result|.
+
+    5.  If |configuration|'s [=Trusted Types enforcement configuration/allow duplicates=] is `true`,
+        [=list/append=] "`'allow-duplicates'`" to |result|.
+
+    6.  Return |result|.
+  </div>
+
+  <div algorithm="intersect trusted types directive values">
+    To determine the <dfn>trusted-types directive-value intersection</dfn> given two
+    [=directive/values=] |A| and |B|:
+
+    1.  Let |configuration A| be the result of [=normalize a trusted-types directive value|normalizing=]
+        |A|.
+
+    2.  Let |configuration B| be the result of [=normalize a trusted-types directive value|normalizing=]
+        |B|.
+
+    3.  Let |configuration| be a new [=Trusted Types enforcement configuration=].
+
+    4.  If |configuration A|'s [=Trusted Types enforcement configuration/allowed policy names=] is
+        the special value `*`, set |configuration|'s
+        [=Trusted Types enforcement configuration/allowed policy names=] to |configuration B|'s
+        [=Trusted Types enforcement configuration/allowed policy names=].
+
+    5.  Otherwise, if |configuration B|'s
+        [=Trusted Types enforcement configuration/allowed policy names=] is the special value `*`,
+        set |configuration|'s [=Trusted Types enforcement configuration/allowed policy names=] to
+        |configuration A|'s [=Trusted Types enforcement configuration/allowed policy names=].
+
+    6.  Otherwise:
+
+        1.  Set |configuration|'s
+            [=Trusted Types enforcement configuration/allowed policy names=] to an empty [=/set=].
+
+        2.  For each |name| in |configuration A|'s
+            [=Trusted Types enforcement configuration/allowed policy names=], if |configuration B|'s
+            [=Trusted Types enforcement configuration/allowed policy names=] [=set/contains=]
+            |name|, [=set/append=] |name| to |configuration|'s
+            [=Trusted Types enforcement configuration/allowed policy names=].
+
+    7.  Set |configuration|'s [=Trusted Types enforcement configuration/allow duplicates=] to `true`
+        if both |configuration A|'s and |configuration B|'s
+        [=Trusted Types enforcement configuration/allow duplicates=] are `true`, and to `false`
+        otherwise.
+
+    8.  If |configuration|'s [=Trusted Types enforcement configuration/allowed policy names=] is an
+        empty set, set its [=Trusted Types enforcement configuration/allow duplicates=] to `false`.
+
+    9.  Return the result of [=serialize a Trusted Types enforcement configuration|serializing=]
+        |configuration|.
+  </div>
+
+  #### Trusted Types Sink Groups #### {#trusted-types-sink-groups}
+
+  The "`require-trusted-types-for`" directive and its sink-group syntax are defined by Trusted Types
+  [[!TRUSTED-TYPES]] in its
+  <a href="https://w3c.github.io/trusted-types/dist/spec/#require-trusted-types-for-csp-directive">`require-trusted-types-for`
+  directive section</a>.
+
+  <div algorithm="normalize trusted types sink groups">
+    To <dfn>normalize Trusted Types sink groups</dfn> given a [=directive/value=] |value|:
+
+    1.  Let |result| be an empty [=/set=].
+
+    2.  For each |token| in |value|, if |token| is an [=ASCII case-insensitive=] match for
+        "`'script'`", [=set/append=] the canonical lowercase string "`'script'`" to |result|.
+
+    3.  Return |result|.
+  </div>
+
+  Sink-group keywords are matched ASCII case-insensitively and stored in lowercase. Unrecognized
+  tokens are ignored, and token order and repetition are irrelevant. The only currently recognized
+  sink-group token is "`'script'`".
+
+  <div algorithm="intersect trusted types sink groups">
+    To determine the <dfn>require-trusted-types-for directive value intersection</dfn> given two
+    [=directive/values=] |A| and |B|:
+
+    1.  Let |result| be the result of [=normalize Trusted Types sink groups|normalizing=] |A|.
+
+    2.  Let |groups B| be the result of [=normalize Trusted Types sink groups|normalizing=] |B|.
+
+    3.  For each |group| in |groups B|, [=set/append=] |group| to |result|.
+
+    4.  Let |groups| be a [=/list=] containing the strings in |result|.
+
+    5.  Sort |groups| in ascending order with [=code unit less than=].
+
+    6.  Return |groups|.
+  </div>
+
+  <div class="note">
+    Because policies are simultaneously enforced, the policy-level intersection contains the union
+    of their required sink groups: a group required by either policy remains required.
+  </div>
+
   ISSUE: Move the remaining intersection algorithms into this section.
 
 
@@ -1210,9 +1499,9 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   <div algorithm="subsume csp list">
   Given a [=content security policy object=] |subsuming policy| with an <a for="/">origin</a>
   (|subsuming origin|) and a [=/list=] of [=content security policy object=] objects |policy list|
-  with an <a for="/">origin</a> (|origin|), this algorithm returns "`Subsumes`" if
-  |subsuming policy| [=content security policy object/subsumes=] |policy list|, and returns "`Does
-  Not Subsume`" otherwise.
+  with an <a for="/">origin</a> (|origin|), this algorithm returns "`Subsumes`" if its steps
+  establish that |subsuming policy| [=content security policy object/subsumes=] |policy list|, and
+  returns "`Does Not Subsume`" otherwise.
 
   <ol class="algorithm">
     1.  If |subsuming policy| is `null`, return "`Subsumes`".
@@ -1238,8 +1527,10 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
   <div algorithm="policy subsumption">
   Given a [=content security policy object=] |A| with an [=request/origin=] (|origin A|) and a
   [=content security policy object=] |B| with an [=request/origin=] (|origin B|), this algorithm
-  returns "`Subsumes`" if |A| [=content security policy object/subsumes=] |B|, and returns "`Does
-  Not Subsume`" otherwise.
+  returns "`Subsumes`" if its steps establish that |A| [=content security policy object/subsumes=]
+  |B|, and returns "`Does Not Subsume`" otherwise. A "`Subsumes`" result establishes the subsumption
+  relation defined above. A "`Does Not Subsume`" result means that this algorithm did not establish
+  the relation, not necessarily that the relation is false.
 
   1.  If |A|'s [=content security policy object/directive set=] [=list/is empty=], return
       "`Subsumes`".
@@ -1254,14 +1545,44 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
       3.  Let |effective directive A| be the [=effective directive value=] for |directive name| and
           |A|.
 
-      3.  Let |effective directive B| be the [=effective directive value=] for |directive name| and
+      4.  Let |effective directive B| be the [=effective directive value=] for |directive name| and
           |B|.
 
       5.  If |effective directive A| is `null`, [=iteration/continue=].
 
       6.  If |effective directive B| is `null`, return "`Does Not Subsume`".
 
-      7.  If |directive A|'s [=directive/name=] is "`frame-ancestors`":
+      7.  If |directive name| is "`trusted-types`":
+
+          1.  Let |configuration A| be the result of
+              [=normalize a trusted-types directive value|normalizing=] |effective directive A|.
+
+          2.  Let |configuration B| be the result of
+              [=normalize a trusted-types directive value|normalizing=] |effective directive B|.
+
+          3.  If |configuration A| and |configuration B| are not
+              [=Trusted Types enforcement configuration/equal=], return "`Does Not Subsume`".
+
+          4.  [=iteration/Continue=].
+
+          Note: This exact-match rule is intentionally conservative. It can reject a stricter |B|,
+          for example when |B| allows fewer policy names or disallows duplicates. Richer
+          "`trusted-types`" subsumption is preferred, but deferred.
+
+      8.  If |directive name| is "`require-trusted-types-for`":
+
+          1.  Let |groups A| be the result of [=normalize Trusted Types sink groups|normalizing=]
+              |effective directive A|.
+
+          2.  Let |groups B| be the result of [=normalize Trusted Types sink groups|normalizing=]
+              |effective directive B|.
+
+          3.  For each |group| in |groups A|, if |groups B| does not [=set/contain=] |group|, return
+              "`Does Not Subsume`".
+
+          4.  [=iteration/Continue=].
+
+      9.  If |directive A|'s [=directive/name=] is "`frame-ancestors`":
 
           1.  If |effective directive B| is « "`'none'`" », [=iteration/continue=].
 
@@ -1278,14 +1599,14 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
 
               4.  If |found match| is `false`, return "`Does Not Subsume`".
 
-      8.  If |directive A|'s [=directive/name=] is "`plugin-types`":
+      10. If |directive A|'s [=directive/name=] is "`plugin-types`":
 
           1.  For each |type B| in |effective directive B|:
 
               1.  If |effective directive A| does not [=list/contain=] |type B|, return "`Does Not
                   Subsume`".
 
-      9.  If |directive A|'s [=directive/name=] is "`sandbox`":
+      11. If |directive A|'s [=directive/name=] is "`sandbox`":
 
           1.  Let |flags A| be the result of [=parsing a sandboxing directive=] given
               |effective directive A|.
@@ -1301,9 +1622,9 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
           every permission allowed by $A$ must also be allowed by $B$. If $B$ omits a flag that $A$
           includes, $B$ is not at least as restrictive as $A$ for that specific permission.
 
-      10. If |directive A|'s [=directive/name=] is "`disown-opener`", [=iteration/continue=].
+      12. If |directive A|'s [=directive/name=] is "`disown-opener`", [=iteration/continue=].
 
-      11. Otherwise:
+      13. Otherwise:
 
           1.  If the result of executing [[#subsume-source-list]] is "`Does Not Subsume`" given
               |effective directive A|, |origin A|, |directive name|, |effective directive B|,
