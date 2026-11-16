@@ -1157,8 +1157,8 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
       B = http://*.example.com/foo/bar/
     </pre>
 
-    Since |A| has a [=source expression/wildcard host=], it matches any subdomain which in this case
-    is "inner" so that |A| is similar to |B|.
+    The [=source expression/wildcard host=] in |B| matches |A|'s host, `inner.example.com`.
+    Hence, the two source expressions are similar.
 
     <pre>
       A = http://*.example.com
