@@ -1297,8 +1297,8 @@ spec: HTML; urlPrefix: https://html.spec.whatwg.org/
               1.  If |flags B| does not [=set/contain=] |flag|, return "`Does Not Subsume`".
 
           Note: A policy $A$ subsumes $B$ if $B$ is more restrictive. For sandbox flags, this means
-          every permission allowed by $A$ must also be allowed by $B$. If $B$ omits a flag that $A$
-          includes, $B$ is not at least as restrictive as $A$ for that specific permission.
+          every sandboxing flag set by $A$ must also be set by $B$. If $B$ omits a flag that $A$
+          includes, $B$ is not at least as restrictive as $A$ for that specific sandbox flag.
 
       10. If |directive A|'s [=directive/name=] is "`disown-opener`", [=iteration/continue=].
 
